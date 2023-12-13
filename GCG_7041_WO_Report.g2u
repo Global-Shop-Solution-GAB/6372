@@ -1,0 +1,74 @@
+﻿Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Function.Intrinsic.UI.UsePixels ' Allows you to use Pixels instead of Twips throughout
+F.Intrinsic.Control.Try
+
+	V.Local.sProgram.Declare
+	V.Local.bIsProgram.Declare
+	F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+		F.Intrinsic.Control.Case("16090")
+			F.Intrinsic.String.IsInString(V.Passed.BIP_PROGRAM, "BJ020LZ", True, V.Local.bIsProgram)
+			F.Intrinsic.Control.If(V.Passed.BIP_REPORTID, =, "001811")
+			F.Intrinsic.Control.AndIf(V.Local.bIsProgram, =, True)
+				F.Intrinsic.Control.CallSub(ReportToPrint)
+			F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndSelect
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, V.Ambient.CurrentSubroutine)
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.ErrorMsg.Start
+'Generic Error message.
+V.Local.sError.Declare
+
+'F.Intrinsic.Control.If(V.Global.bConOpen)
+'	F.ODBC.Connection!con.Close
+'F.Intrinsic.Control.EndIf
+
+f.Intrinsic.String.Build("Project GCG_7041_WO_Report.g2u {0}{0}Subroutine: {1}{0}Error: {2} with Description: {3}", v.Ambient.NewLine, v.Args.CurrentSub, v.Ambient.ErrorNumber, v.Ambient.ErrorDescription, v.Local.sError)
+f.Intrinsic.UI.Msgbox(v.Local.sError)
+Program.Sub.ErrorMsg.End
+
+Program.Sub.ReportToPrint.Start
+F.Intrinsic.Control.Try
+	V.Local.sTerminal.Declare
+	V.Local.sSQL.Declare
+	V.Local.sPL.Declare
+	V.Local.sParams.Declare
+	V.Local.sValues.Declare
+	V.Local.sRollReportPath.Declare
+	V.Local.iReportID.Declare
+	V.Local.iBIRunID.Declare
+	V.Local.iBILogID.Declare
+	V.Local.iRet.Declare
+	
+	V.Local.sTerminal.Set(V.Passed.BIP_Terminal.Trim)
+	V.Local.sParams.Set("TERMINAL*!*MATLBAR*!*OUTBAR*!*FGBAR*!*PROGRAM*!*REPORTID")
+	F.Intrinsic.String.Split(V.Local.sParams, "*!*", V.Local.sParams)
+	F.Intrinsic.String.Build("{0}*!**!**!**!**!*001811", V.Local.sTerminal, V.Local.sValues)
+	F.Intrinsic.String.Split(V.Local.sValues, "*!*", V.Local.sValues)
+	
+	F.ODBC.Connection!con.OpenCompanyConnection
+	F.Intrinsic.String.Build("select PL from V_BI_BAR_HEAD where RPTID = '001811' and TERMINAL = '{0}'", V.Local.sTerminal, V.Local.sSQL)
+	F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL, V.Local.sPL)
+	F.Intrinsic.Control.If(V.Local.sPL, =, "AR")
+		'Print Roll version of report for all other product lines that are AR. Otherwise print roll report which is already on the core report ID
+		V.Passed.CANCEL.Set(-1)
+		V.Local.sRollReportPath.Set("GCG_7041_Rubber_BarCodeWO_Ext.rpt")
+		F.Global.BI.GetIDFromName(V.Local.sRollReportPath, True, V.Local.iReportID)
+		F.Global.BI.PrintReport(V.Local.iReportID, 16, V.Local.sParams, V.Local.sValues, "", True)
+		F.ODBC.Connection!con.Close
+	F.Intrinsic.Control.EndIf
+	
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, V.Ambient.CurrentSubroutine)
+F.Intrinsic.Control.EndTry
+Program.Sub.ReportToPrint.End
+
+Program.Sub.Comments.Start
+${$5$}$20.1.8286.22461$}$1
+${$6$}$bmedina$}$20230124211928173$}$kOipCrsyLBVj2KoSwkcdK23ChxGVcBlE197TarmUdXffG1TnxGDZoJhZTrp7FxdpCmlEhOciOS8=
+Program.Sub.Comments.End
