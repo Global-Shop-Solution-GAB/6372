@@ -1,0 +1,588 @@
+Program.Sub.Preflight.Start
+V.Global.sPL.Declare(String,"")
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.i.Declare(Long,0)
+V.Local.sGAB.Declare(String,"")
+V.Local.sWO.Declare(String,"")
+
+F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+	F.Intrinsic.Control.Case(31825)
+		'000026 = Order Qty
+
+		F.ODBC.Connection!Con.OpenCompanyConnection
+		F.Intrinsic.String.Build("Select Product_Line From V_Job_Header Where Job = '{0}' and Suffix = '{1}'",V.Passed.009000,V.Passed.009001,V.Local.sWO)
+		F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sWO,V.Global.sPL)
+		F.ODBC.Connection!Con.Close
+		
+		F.Intrinsic.Control.CallSub(Get_Last_Seq,"Qty",V.Passed.000026.Long)
+		F.Intrinsic.Control.CallSub(Attach_Serial,"Last_Seq",V.Args.Last_Seq)
+
+		F.Intrinsic.Control.If(V.Caller.GasDir.Right1,=,"\")
+			F.Intrinsic.String.Build("{0}GCG_6372_Process_Button.g2u",V.Caller.GasDir,V.Local.sGAB)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.String.Build("{0}\GCG_6372_Process_Button.g2u",V.Caller.GasDir,V.Local.sGAB)
+		F.Intrinsic.Control.EndIf
+		
+		Function.Global.General.CallAsyncGAS(V.Local.sGAB,V.Caller.PID,V.Local.i)
+
+		F.Intrinsic.Control.CallSub(Exit)
+		
+	'Pre Process Hook
+	F.Intrinsic.Control.Case(31833)
+		'saving vins to history table
+		F.Intrinsic.String.Build("{0}|~|{1}",V.Passed.009000,V.Passed.009001,V.Local.sWO)
+		F.Intrinsic.Control.If(V.Caller.GasDir.Right1,=,"\")
+			F.Intrinsic.String.Build("{0}GCG_6372_Process_Vins.g2u",V.Caller.GasDir,V.Local.sGAB)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.String.Build("{0}\GCG_6372_Process_Vins.g2u",V.Caller.GasDir,V.Local.sGAB)
+		F.Intrinsic.Control.EndIf
+		
+		Function.Global.General.CallAsyncGAS(V.Local.sGAB,V.Local.sWO,V.Local.i)
+
+		F.Intrinsic.Control.CallSub(Exit)
+		
+	F.Intrinsic.Control.Case(15226)
+		F.Intrinsic.Control.CallSub(Update_Vin_Hist,"Hook","15226")
+	
+	F.Intrinsic.Control.Case(16504)
+		'Job - v.passed.000003
+		'Suffix v.passed.000004
+		'Part  v.passed.000008
+		F.Intrinsic.Control.CallSub(Update_Vin_Hist,"Hook","16504")
+		
+	F.Intrinsic.Control.CaseElse
+		F.Intrinsic.Control.CallSub(Exit)
+	
+F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Vin_Gen.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Main.End
+
+Program.Sub.Exit.Start
+F.Intrinsic.Control.SetErrorHandler("Exit_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Exit_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+Program.Sub.Exit.End
+
+Program.Sub.Get_Last_Seq.Start
+F.Intrinsic.Control.SetErrorHandler("Get_Last_Seq_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sRet.Declare(String,"")
+V.Local.sLastSeq.Declare(String,"")
+V.Local.sSql.Declare(String,"")
+V.Local.sWMI.Declare(String,"")
+V.Local.i.Declare(Long,0)
+V.Local.sFilter.Declare(String,"")
+
+F.ODBC.Connection!Con.OpenCompanyConnection
+
+F.Intrinsic.Control.If(V.Global.sPL,=,"60","OR",V.Global.sPL,=,"70")
+	F.ODBC.Connection!con.ExecuteAndReturn("SELECT Last_Seq FROM GCG_6372_VIN_LASTSEQ", V.Local.sRet)
+	
+	'getting last seq and saving last seq back
+	F.Intrinsic.Control.If(V.Local.sRet,=,"")
+		V.Local.sRet.Set("000000")
+		F.Intrinsic.Math.Add(V.Local.sRet.Long,V.Args.Qty.Long,V.Local.sLastSeq)
+		F.Intrinsic.String.LPad(V.Local.sLastSeq,0, 6, V.Local.sLastSeq)
+		F.Intrinsic.String.Build("INSERT INTO GCG_6372_VIN_LASTSEQ (Company,Last_Seq) VALUES ('{0}','{1}')",V.Caller.CompanyCode,V.Local.sLastSeq,V.Local.sSql)
+		F.ODBC.Connection!Con.Execute(V.Local.sSql)
+	F.Intrinsic.Control.Else
+'		F.Intrinsic.Math.Add(V.Local.sRet.Long,1,V.Local.sRet)
+		F.Intrinsic.Math.Add(V.Local.sRet.Long,V.Args.Qty.Long,V.Local.sLastSeq)
+		F.Intrinsic.Control.If(V.Local.sLastSeq.Long,>=,1000000)
+			F.Intrinsic.Math.Add(V.Local.sLastSeq,1,V.Local.sLastSeq)
+			F.Intrinsic.String.Right(V.Local.sLastSeq,6,V.Local.sLastSeq)
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.String.LPad(V.Local.sLastSeq,0, 6, V.Local.sLastSeq)
+		F.Intrinsic.String.Build("UPDATE GCG_6372_VIN_LASTSEQ Set Last_Seq = '{0}'",V.Local.sLastSeq,V.Local.sSQL)
+		F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Variable.AddRV("Last_Seq",V.Local.sRet)
+	
+	F.Data.DataTable.CreateFromSQL("WMI","con","Select Model_Year, Model, WMI, Plant_Code From GCG_6372_WMI Order by Model_Year",True)
+	
+	'wmi is the first 3 chars of the vin
+	F.Intrinsic.Control.If(V.DataTable.WMI.RowCount--,<>,-1)
+		V.Local.sWMI.Set(V.DataTable.WMI(V.DataTable.WMI.RowCount--).WMI!FieldValTrim)
+	F.Intrinsic.Control.EndIf
+	
+	'creating dt that will be used to calculate the 9th pos of the vin number
+	F.Data.DataTable.Create("charvalue",True)
+	F.Data.DataTable.AddColumn("charvalue","Key",String)
+	F.Data.DataTable.AddColumn("charvalue","Value",Long)
+	F.Data.DataTable.AddRow("charvalue","Key","A","Value",1)
+	F.Data.DataTable.AddRow("charvalue","Key","B","Value",2)
+	F.Data.DataTable.AddRow("charvalue","Key","C","Value",3)
+	F.Data.DataTable.AddRow("charvalue","Key","D","Value",4)
+	F.Data.DataTable.AddRow("charvalue","Key","E","Value",5)
+	F.Data.DataTable.AddRow("charvalue","Key","F","Value",6)
+	F.Data.DataTable.AddRow("charvalue","Key","G","Value",7)
+	F.Data.DataTable.AddRow("charvalue","Key","H","Value",8)
+	F.Data.DataTable.AddRow("charvalue","Key","J","Value",1)
+	F.Data.DataTable.AddRow("charvalue","Key","K","Value",2)
+	F.Data.DataTable.AddRow("charvalue","Key","L","Value",3)
+	F.Data.DataTable.AddRow("charvalue","Key","M","Value",4)
+	F.Data.DataTable.AddRow("charvalue","Key","N","Value",5)
+	F.Data.DataTable.AddRow("charvalue","Key","P","Value",7)
+	F.Data.DataTable.AddRow("charvalue","Key","R","Value",9)
+	F.Data.DataTable.AddRow("charvalue","Key","S","Value",2)
+	F.Data.DataTable.AddRow("charvalue","Key","T","Value",3)
+	F.Data.DataTable.AddRow("charvalue","Key","U","Value",4)
+	F.Data.DataTable.AddRow("charvalue","Key","V","Value",5)
+	F.Data.DataTable.AddRow("charvalue","Key","W","Value",6)
+	F.Data.DataTable.AddRow("charvalue","Key","X","Value",7)
+	F.Data.DataTable.AddRow("charvalue","Key","Y","Value",8)
+	F.Data.DataTable.AddRow("charvalue","Key","Z","Value",9)
+	
+	F.Data.DataTable.Create("Frac",True)
+	F.Data.DataTable.AddColumn("Frac","Key",Float)
+	F.Data.DataTable.AddColumn("Frac","Value",String)
+	F.Data.DataTable.AddRow("Frac","Key",".0","Value",0)
+	F.Data.DataTable.AddRow("Frac","Key",".091","Value",1)
+	F.Data.DataTable.AddRow("Frac","Key",".182","Value",2)
+	F.Data.DataTable.AddRow("Frac","Key",".273","Value",3)
+	F.Data.DataTable.AddRow("Frac","Key",".364","Value",4)
+	F.Data.DataTable.AddRow("Frac","Key",".455","Value",5)
+	F.Data.DataTable.AddRow("Frac","Key",".545","Value",6)
+	F.Data.DataTable.AddRow("Frac","Key",".634","Value",7)
+	F.Data.DataTable.AddRow("Frac","Key",".727","Value",8)
+	F.Data.DataTable.AddRow("Frac","Key",".818","Value",9)
+	F.Data.DataTable.AddRow("Frac","Key",".909","Value",X)
+	
+	F.Data.DataTable.Create("Serial",True)
+	F.Data.DataTable.AddColumn("Serial","Key",Long)
+	F.Data.DataTable.AddColumn("Serial","Value1",Long)
+	F.Data.DataTable.AddColumn("Serial","Value2",Long)
+	F.Data.DataTable.AddExpressionColumn("Serial","Value3",Long,"Value1*Value2")
+	F.Data.DataTable.AddExpressionColumn("Serial","Value4",Long,"Sum(Value3)")
+	F.Data.DataTable.AddExpressionColumn("Serial","Value5",Float,"Value4/11")
+	F.Data.DataTable.AddRow("Serial","Key",1,"Value1",0,"Value2",8)
+	F.Data.DataTable.AddRow("Serial","Key",2,"Value1",0,"Value2",7)
+	F.Data.DataTable.AddRow("Serial","Key",3,"Value1",0,"Value2",6)
+	F.Data.DataTable.AddRow("Serial","Key",4,"Value1",0,"Value2",5)
+	F.Data.DataTable.AddRow("Serial","Key",5,"Value1",0,"Value2",4)
+	F.Data.DataTable.AddRow("Serial","Key",6,"Value1",0,"Value2",3)
+	F.Data.DataTable.AddRow("Serial","Key",7,"Value1",0,"Value2",2)
+	F.Data.DataTable.AddRow("Serial","Key",8,"Value1",0,"Value2",10)
+	F.Data.DataTable.AddRow("Serial","Key",9,"Value1",0,"Value2",0)
+	F.Data.DataTable.AddRow("Serial","Key",10,"Value1",0,"Value2",9)
+	F.Data.DataTable.AddRow("Serial","Key",11,"Value1",0,"Value2",8)
+	F.Data.DataTable.AddRow("Serial","Key",12,"Value1",0,"Value2",7)
+	F.Data.DataTable.AddRow("Serial","Key",13,"Value1",0,"Value2",6)
+	F.Data.DataTable.AddRow("Serial","Key",14,"Value1",0,"Value2",5)
+	F.Data.DataTable.AddRow("Serial","Key",15,"Value1",0,"Value2",4)
+	F.Data.DataTable.AddRow("Serial","Key",16,"Value1",0,"Value2",3)
+	F.Data.DataTable.AddRow("Serial","Key",17,"Value1",0,"Value2",2)
+	
+	F.Intrinsic.Control.For(V.Local.i,1,V.Local.sWMI.Length,1)
+		F.Intrinsic.String.Mid(V.Local.sWMI,V.Local.i,1,V.Local.sRet)
+		F.Intrinsic.Control.If(V.Local.sRet.IsNumeric,=,False)
+			F.Intrinsic.String.Build("Key = '{0}'",V.Local.sRet,V.Local.sFilter)
+			F.Data.DataView.Create("charvalue","Temp",22,V.Local.sFilter,"")
+			F.Intrinsic.Control.If(V.DataView.charvalue!Temp.RowCount--,<>,-1)
+				V.Local.sRet.Set(V.DataView.charvalue!Temp(V.DataView.charvalue!Temp.RowCount--).Value!FieldVal)
+			F.Intrinsic.Control.Else
+				V.Local.sRet.Set(1)
+			F.Intrinsic.Control.EndIf
+			F.Data.DataView.Close("charvalue","Temp")
+		F.Intrinsic.Control.EndIf
+		
+		F.Intrinsic.String.Build("Key = {0}",V.Local.i,V.Local.sFilter)
+		F.Data.DataView.Create("Serial","Temp",22,V.Local.sFilter,"")
+		F.Intrinsic.Control.If(V.DataView.Serial!Temp.RowCount--,<>,-1)
+			F.Data.DataView.SetValue("Serial","Temp",-1,"Value1",V.Local.sRet)
+		F.Intrinsic.Control.EndIf
+		F.Data.DataView.Close("Serial","Temp")
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Intrinsic.Control.If(V.DataTable.WMI.RowCount--,<>,-1)
+		V.Local.sRet.Set(V.DataTable.WMI(V.DataTable.WMI.RowCount--).Plant_Code!FieldValTrim)
+	F.Intrinsic.Control.Else
+		V.Local.sRet.Set(1)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.If(V.Local.sRet.IsNumeric,=,False)
+		F.Intrinsic.String.Build("Key = '{0}'",V.Local.sRet,V.Local.sFilter)
+		F.Data.DataView.Create("charvalue","Temp",22,V.Local.sFilter,"")
+		F.Intrinsic.Control.If(V.DataView.charvalue!Temp.RowCount--,<>,-1)
+			V.Local.sRet.Set(V.DataView.charvalue!Temp(V.DataView.charvalue!Temp.RowCount--).Value!FieldVal)
+		F.Intrinsic.Control.Else
+			V.Local.sRet.Set(1)
+		F.Intrinsic.Control.EndIf
+		F.Data.DataView.Close("charvalue","Temp")
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Build("Key = {0}",17,V.Local.sFilter)
+	F.Data.DataView.Create("Serial","Temp",22,V.Local.sFilter,"")
+	F.Intrinsic.Control.If(V.DataView.Serial!Temp.RowCount--,<>,-1)
+	F.Data.DataView.SetValue("Serial","Temp",-1,"Value1",V.Local.sRet)
+	F.Intrinsic.Control.EndIf
+	F.Data.DataView.Close("Serial","Temp")
+F.Intrinsic.Control.Else
+	F.ODBC.Connection!Con.ExecuteAndReturn("Select F_Long From Op_Header Where ID = '401140' and Sequence = '0000'",V.Local.sRet)
+	F.Intrinsic.Control.If(V.Local.sRet.Long,=,0)
+		V.Local.sRet.Set("00000001")
+		F.Intrinsic.Math.Add(V.Local.sRet.Long,V.Args.Qty,V.Local.sLastSeq)
+		F.Intrinsic.String.Build("Update Op_Header Set F_Long = {0} Where ID = '401140' and Sequence = '0000'",V.Local.sLastSeq.Long,V.Local.sSql)
+		F.ODBC.Connection!Con.Execute(V.Local.sSql)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.Math.Add(V.Local.sRet.Long,V.Args.Qty,V.Local.sLastSeq)
+		F.Intrinsic.Control.If(V.Local.sLastSeq.Long,>=,100000000)
+			F.Intrinsic.Math.Add(V.Local.sLastSeq,1,V.Local.sLastSeq)
+			F.Intrinsic.String.Right(V.Local.sLastSeq,8,V.Local.sLastSeq)
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.String.Build("Update Op_Header Set F_Long = {0} Where ID = '401140' and Sequence = '0000'",V.Local.sLastSeq.Long,V.Local.sSql)
+		F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Variable.AddRV("Last_Seq",V.Local.sRet)
+F.Intrinsic.Control.EndIf
+
+F.ODBC.Connection!con.Close
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Get_Last_Seq_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Vin_Gen.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Get_Last_Seq.End
+
+Program.Sub.Attach_Serial.Start
+F.Intrinsic.Control.SetErrorHandler("Attach_Serial_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.i.Declare(Long,0)
+V.Local.sRet.Declare(String,"")
+V.Local.sPart.Declare(String,"")
+V.Local.sRev.Declare(String,"")
+V.Local.sSql.Declare(String,"")
+V.Local.sYear.Declare(String,"")
+V.Local.sExtra.Declare(String,"")
+V.Local.sSerialStart.Declare(String,"")
+V.Local.sFilter.Declare(String,"")
+V.Local.iC.Declare(Long,0)
+V.Local.iR.Declare(Long,0)
+V.Local.iS.Declare(Long,0)
+V.Local.sTemp.Declare(Long,0)
+V.Local.sSerial.Declare(String,"")
+V.Local.sModel.Declare(String,"")
+V.Local.s9.Declare(String,"")
+
+'Loads name of BDF and ID into memory
+Function.Intrinsic.BDF.Load("AUX001","AUX001")
+
+F.ODBC.Connection!Con.OpenCompanyConnection
+
+F.Intrinsic.Control.If(V.Global.sPL,=,"60","OR",V.Global.sPL,=,"70")
+	'getting part and due date
+	F.Intrinsic.String.Build("Select a.Part, a.Date_Due From V_Job_Header a Left Join V_Inventory_Mst2 b on a.Part = b.Part Where Job = '{0}' and Suffix = '{1}'",V.Passed.009000,V.Passed.009001,V.Local.sSql)
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sPart)
+		
+	F.Intrinsic.String.Split(V.Local.sPart,"*!*",V.Local.sPart)
+	
+	F.ODBC.Connection!Con.ExecuteAndReturn("Select Top 1 Model_Year From GCG_6372_WMI Order by Model_Year Desc",V.Local.sYear)
+	
+	F.Intrinsic.String.Build("Model_Year = '{0}'",V.Local.sYear,V.Local.sFilter)
+	F.Data.DataView.Create("WMI","Temp",22,V.Local.sFilter,"")
+	
+	F.Intrinsic.Control.If(V.DataView.WMI!Temp.RowCount--,<>,-1)
+		V.Local.sRet.Set(V.DataView.WMI!Temp(V.DataView.WMI!Temp.RowCount--).Model!FieldValTrim)
+	F.Intrinsic.Control.Else
+		V.Local.sRet.Set(1)
+	F.Intrinsic.Control.EndIf
+	
+	F.Data.DataView.Close("WMI","Temp")
+	
+	V.Local.sModel.Set(V.Local.sRet)
+	
+	F.Intrinsic.Control.If(V.Local.sRet.IsNumeric,=,False)
+		F.Intrinsic.String.Build("Key = '{0}'",V.Local.sRet,V.Local.sFilter)
+		F.Data.DataView.Create("charvalue","Temp",22,V.Local.sFilter,"")
+		F.Intrinsic.Control.If(V.DataView.charvalue!Temp.RowCount--,<>,-1)
+			V.Local.sRet.Set(V.DataView.charvalue!Temp(V.DataView.charvalue!Temp.RowCount--).Value!FieldVal)
+		F.Intrinsic.Control.Else
+			V.Local.sRet.Set(1)
+		F.Intrinsic.Control.EndIf
+		F.Data.DataView.Close("charvalue","Temp")
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Build("Key = {0}",10,V.Local.sFilter)
+	F.Data.DataView.Create("Serial","Temp",22,V.Local.sFilter,"")
+	F.Intrinsic.Control.If(V.DataView.Serial!Temp.RowCount--,<>,-1)
+	F.Data.DataView.SetValue("Serial","Temp",-1,"Value1",V.Local.sRet)
+	F.Intrinsic.Control.EndIf
+	F.Data.DataView.Close("Serial","Temp")
+	
+	'F.Intrinsic.String.RPad(V.Local.sPart," ",20,V.Local.sPart)
+	'F.Intrinsic.String.Right(V.Local.sPart,3,V.Local.sRev)
+'F.Intrinsic.String.Left(V.Local.sPart,17,V.Local.sPart)
+
+	V.Local.sExtra.Redim(0,3)
+	
+	F.Intrinsic.String.Left(V.Local.sPart,1,V.Local.sExtra(0))
+	
+	'each value in the vin = and number value.  number = number and char = number found in charvalue table
+	'added each value to the serial table to do the calculation to get the 9th pos
+	'to get the 9th you take the decimal of the calculation in the serial table col value5 and copare to the Frac table to get the value to set for the 9th pos
+	F.Intrinsic.Control.If(V.Local.sExtra(0).IsNumeric,=,False)
+		F.Intrinsic.String.Build("Key = '{0}'",V.Local.sExtra(0),V.Local.sFilter)
+		F.Data.DataView.Create("charvalue","Temp",22,V.Local.sFilter,"")
+		V.Local.sRet.Set(V.DataView.charvalue!Temp(V.DataView.charvalue!Temp.RowCount--).Value!FieldVal)
+		F.Data.DataView.Close("charvalue","Temp")
+	F.Intrinsic.Control.Else
+		V.Local.sRet.Set(V.Local.sExtra(0))
+	F.Intrinsic.Control.EndIf
+	
+	F.Data.DataView.Create("Serial","Temp",22,"Key = 4","")
+	F.Intrinsic.Control.If(V.DataView.Serial!Temp.RowCount--,<>,-1)
+		F.Data.DataView.SetValue("Serial","Temp",-1,"Value1",V.Local.sRet)
+	F.Intrinsic.Control.EndIf
+	F.Data.DataView.Close("Serial","Temp")
+	
+	F.Intrinsic.Control.If(V.Global.sPL,=,"60")
+		F.Intrinsic.String.Mid(V.Local.sPart,3,1,V.Local.sExtra(1))
+	F.Intrinsic.Control.Else
+		F.Intrinsic.String.Mid(V.Local.sPart,2,1,V.Local.sExtra(1))
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.If(V.Local.sExtra(1).IsNumeric,=,False)
+		F.Intrinsic.String.Build("Key = '{0}'",V.Local.sExtra(1),V.Local.sFilter)
+		F.Data.DataView.Create("charvalue","Temp",22,V.Local.sFilter,"")
+		V.Local.sRet.Set(V.DataView.charvalue!Temp(V.DataView.charvalue!Temp.RowCount--).Value!FieldVal)
+		F.Data.DataView.Close("charvalue","Temp")
+	F.Intrinsic.Control.Else
+		V.Local.sRet.Set(V.Local.sExtra(1))
+	F.Intrinsic.Control.EndIf
+	
+	F.Data.DataView.Create("Serial","Temp",22,"Key = 5","")
+	F.Intrinsic.Control.If(V.DataView.Serial!Temp.RowCount--,<>,-1)
+		F.Data.DataView.SetValue("Serial","Temp",-1,"Value1",V.Local.sRet)
+	F.Intrinsic.Control.EndIf
+	F.Data.DataView.Close("Serial","Temp")
+	
+	F.Intrinsic.Control.If(V.Global.sPL,=,"60")
+		F.Intrinsic.String.Mid(V.Local.sPart,6,2,V.Local.sExtra(2))
+		F.Intrinsic.String.Mid(v.Local.sPart,10,1,V.Local.sExtra(3))
+	F.Intrinsic.Control.Else
+		F.Intrinsic.String.Mid(V.Local.sPart,3,2,V.Local.sExtra(2))
+		F.Intrinsic.String.Mid(v.Local.sPart,5,1,V.Local.sExtra(3))
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.If(V.Local.sExtra(3).IsNumeric,=,False)
+		F.Intrinsic.String.Build("Key = '{0}'",V.Local.sExtra(3),V.Local.sFilter)
+		F.Data.DataView.Create("charvalue","Temp",22,V.Local.sFilter,"")
+		V.Local.sRet.Set(V.DataView.charvalue!Temp(V.DataView.charvalue!Temp.RowCount--).Value!FieldVal)
+		F.Data.DataView.Close("charvalue","Temp")
+	F.Intrinsic.Control.Else
+		V.Local.sRet.Set(V.Local.sExtra(3))
+	F.Intrinsic.Control.EndIf
+	
+	F.Data.DataView.Create("Serial","Temp",22,"Key = 8","")
+	F.Intrinsic.Control.If(V.DataView.Serial!Temp.RowCount--,<>,-1)
+		F.Data.DataView.SetValue("Serial","Temp",-1,"Value1",V.Local.sRet)
+	F.Intrinsic.Control.EndIf
+	F.Data.DataView.Close("Serial","Temp")
+	
+	F.Intrinsic.String.Build("{0}{1}{2}{3}{4}",V.DataTable.WMI(V.DataTable.WMI.RowCount--).WMI!FieldValTrim,V.Local.sExtra(0),V.Local.sExtra(1),V.Local.sExtra(2),V.Local.sExtra(3),V.Local.sSerialStart)
+	
+	F.Intrinsic.Control.For(V.Local.i,1,V.Local.sExtra(2).Length,1)
+		F.Intrinsic.String.Mid(V.Local.sExtra(2),V.Local.i,1,V.Local.sRet)
+		F.Intrinsic.Math.Add(V.Local.i,5,V.Local.iC)
+		F.Intrinsic.String.Build("Key = {0}",V.Local.iC,V.Local.sFilter)
+		F.Data.DataView.Create("Serial","Temp",22,V.Local.sFilter,"")
+		F.Intrinsic.Control.If(V.DataView.Serial!Temp.RowCount--,<>,-1)
+			F.Data.DataView.SetValue("Serial","Temp",-1,"Value1",V.Local.sRet)
+		F.Intrinsic.Control.EndIf
+		F.Data.DataView.Close("Serial","Temp")
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	V.Local.sRet.Set(V.Args.Last_Seq)
+	
+	V.Local.iS.Set(0)
+	
+	F.Intrinsic.Control.For(V.Local.i,1,V.Passed.000026.Long,1)
+		F.Intrinsic.Math.Add(V.Local.sRet.Long,1,V.Local.sRet)
+		F.Intrinsic.Control.If(V.Local.sRet,=,"1000000")
+			V.Local.sRet.Set("000001")
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.String.LPad(V.Local.sRet,"0",6,V.Local.sRet)
+		V.Local.sSerial.RedimPreserve(0,V.Local.iS)
+		F.Intrinsic.Control.For(V.Local.iC,1,V.Local.sRet.Length,1)
+			F.Intrinsic.String.Mid(V.Local.sRet,V.Local.iC,1,V.Local.sTemp)
+			F.Intrinsic.Math.Add(V.Local.iC,10,V.Local.iR)
+			F.Intrinsic.String.Build("Key = {0}",V.Local.iR,V.Local.sFilter)
+			F.Data.DataView.Create("Serial","Temp",22,V.Local.sFilter,"")
+			F.Intrinsic.Control.If(V.DataView.Serial!Temp.RowCount--,<>,-1)
+				F.Data.DataView.SetValue("Serial","Temp",-1,"Value1",V.Local.sTemp)
+			F.Intrinsic.Control.EndIf
+			F.Data.DataView.Close("Serial","Temp")
+		F.Intrinsic.Control.Next(V.Local.iC)
+	
+		V.Local.s9.Redim(0,0)
+		F.Intrinsic.Math.Round(V.DataTable.Serial(V.DataTable.Serial.RowCount--).Value5!FieldVal,3,V.Local.s9.Float)
+		F.Intrinsic.String.Split(V.Local.s9,".",V.Local.s9)
+		F.Intrinsic.Control.If(V.Local.s9.UBound,=,1)
+			F.Intrinsic.String.Build(".{0}",V.Local.s9(1),V.Local.s9)
+		F.Intrinsic.Control.Else
+			V.Local.s9.Set(".000")
+		F.Intrinsic.Control.EndIf
+		
+		F.Intrinsic.String.Build("Key >= {0}",V.Local.s9,V.Local.sFilter)
+		F.Data.DataView.Create("Frac","Temp",22,V.Local.sFilter,"Key Desc")
+		F.Intrinsic.Control.If(V.DataView.Frac!Temp.RowCount--,<>,-1)
+			V.Local.s9.Set(V.DataView.Frac!Temp(V.DataView.Frac!Temp.RowCount--).Value!FieldValTrim)
+		F.Intrinsic.Control.Else
+			V.Local.s9.Set("0")
+		F.Intrinsic.Control.EndIf
+		F.Data.DataView.Close("Frac","Temp")
+		'building vin number since we now know the 9th pos value
+		F.Intrinsic.String.Build("{0}{1}{2}{3}{4}",V.Local.sSerialStart,V.Local.s9,V.Local.sModel,V.DataTable.WMI(V.DataTable.WMI.RowCount--).Plant_Code!FieldValTrim,V.Local.sRet,V.Local.sSerial(V.Local.iS))
+		F.Intrinsic.Math.Add(V.Local.sSerial.UBound,1,V.Local.iS)
+	F.Intrinsic.Control.Next(v.Local.i)
+F.Intrinsic.Control.Else
+	V.Local.sRet.Set(V.Args.Last_Seq)
+	
+	F.Intrinsic.Control.For(V.Local.i,1,V.Passed.000026.Long,1)
+		F.Intrinsic.Math.Add(V.Local.sRet.Long,1,V.Local.sRet)
+		F.Intrinsic.Control.If(V.Local.sRet,=,"100000000")
+			V.Local.sRet.Set("00000001")
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.String.LPad(V.Local.sRet,"0",8,V.Local.sRet)
+		V.Local.sSerial.RedimPreserve(0,V.Local.iS)
+		'building vin number since we now know the 9th pos value
+		F.Intrinsic.String.Build("{0}{1}",V.Passed.009000,V.Local.sRet,V.Local.sSerial(V.Local.iS))
+		F.Intrinsic.Math.Add(V.Local.sSerial.UBound,1,V.Local.iS)
+	F.Intrinsic.Control.Next(v.Local.i)
+F.Intrinsic.Control.EndIf
+
+'writting serials to bdf to dispay on the serial grid
+F.Intrinsic.Control.For(V.Local.i,0,V.Local.sSerial.UBound,1)
+	F.Intrinsic.String.Build("{0}|~|",V.Local.sSerial(V.Local.i),V.Local.sRet)
+	Function.Intrinsic.BDF.WriteRow("AUX001",V.Local.sRet)
+    
+	F.Intrinsic.UI.ChangeCallerProperty(v.Passed.000082,"LOCK","1")
+	F.Intrinsic.UI.ChangeCallerProperty(v.Passed.000022,"LOCK","1")
+	F.Intrinsic.UI.ChangeCallerProperty(v.Passed.000023,"LOCK","1")
+	F.Intrinsic.UI.ChangeCallerProperty(v.Passed.000024,"LOCK","1")
+	F.Intrinsic.UI.ChangeCallerProperty(v.Passed.000025,"LOCK","1") 
+	F.Intrinsic.UI.ChangeCallerProperty(v.Passed.AUX001,"LOCK","1") 
+	F.Intrinsic.UI.ChangeCallerProperty(v.Passed.000030,"LOCK","1") 
+    
+	v.Passed.000027.Set(V.Passed.000026)
+F.Intrinsic.Control.Next(v.Local.i)
+
+Function.Intrinsic.BDF.Save("AUX001","AUX001")
+
+F.ODBC.Connection!Con.Close
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Attach_Serial_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Vin_Gen.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Attach_Serial.End
+
+Program.Sub.Update_Vin_Hist.Start
+F.Intrinsic.Control.SetErrorHandler("Update_Vin_Hist_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sSql.Declare(String,"")
+V.Local.i.Declare(Long,0)
+V.Local.iC.Declare(Long,0)
+V.Local.sDate.Declare(String,"")
+
+
+F.Intrinsic.Control.If(V.Args.Hook,=,"15226")
+	F.Intrinsic.UI.InvokeWaitDialog("Updating Vin History................")
+	F.ODBC.Connection!Con.OpenCompanyConnection
+	F.Intrinsic.String.Build("Select Distinct Invc, Order_Num From AR_Batch_Trans Where Batch = '{0}'",V.Passed.Batch.Trim,V.Local.sSql)
+	
+	F.Data.DataTable.CreateFromSQL("Batch","con",V.Local.sSql,True)
+	
+	F.Intrinsic.Control.For(v.Local.i,0,V.DataTable.Batch.RowCount--,1)
+		F.Intrinsic.String.Build("Select Name_Customer_Ship, Pck_No From V_Order_Hist_Head Where Invoice = '{0}' and Order_No = '{1}'",V.DataTable.Batch(V.Local.i).Invc!FieldValtrim,V.DataTable.Batch(V.Local.i).Order_Num!FieldValtrim,V.Local.sSql)
+		F.Data.DataTable.CreateFromSQL("Head","con",V.Local.sSql,True)
+		F.Intrinsic.String.Build("Select rtrim(Serial) as Vin, Order_Line, Matl_Cost, Cost From V_Order_Hist_Lot Where Invoice = '{0}' and Order_No = '{1}'",V.DataTable.Batch(V.Local.i).Invc!FieldValtrim,V.DataTable.Batch(V.Local.i).Order_Num!FieldValtrim,V.Local.sSql)
+		F.Data.DataTable.CreateFromSQL("Lot","con",V.Local.sSql,True)
+		F.Intrinsic.Control.For(V.Local.iC,0,V.DataTable.Lot.RowCount--,1)
+			F.Intrinsic.String.Build("Select Vin, ITEM_NUM, Order_Number, Ord_Dtl_ID, Unit_Price, Unit_Mtl_Cost, Mfg_Date, Shipment_ID, Invoice_No, Company From GCG_6372_Vin_Hist Where Vin = '{0}' and Order_Number = '{1}' and Ord_Dtl_ID = '{2}'",V.DataTable.Lot(V.Local.iC).Vin!FieldValTrim,V.DataTable.Batch(V.Local.i).Order_Num!FieldValtrim,V.DataTable.Lot(V.Local.iC).Order_Line!FieldValTrim,V.Local.sSql)
+			F.Data.DataTable.CreateFromSQL("Vin","con",V.Local.sSql,True)
+			F.Intrinsic.Control.If(V.DataTable.Vin.RowCount--,<>,-1)
+				F.Intrinsic.String.Build("Select Top 1 Date_History From V_Item_History Where Part = '{0}' and Serial_Number = '{1}' and Code_Transaction = 'J52' Order by Date_History Desc",V.DataTable.Vin(V.DataTable.Vin.RowCount--).Item_Num!FieldValTrim,V.DataTable.Vin(V.DataTable.Vin.RowCount--).Vin!FieldValTrim,V.Local.sSql)
+				F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sDate)
+				f.Intrinsic.String.Format(v.Local.sDate,"MM/DD/YYYY",V.Local.sDate)
+				F.Data.DataTable.SetValue("Vin",-1,"Unit_Price",V.DataTable.Lot(V.Local.iC).Cost!FieldValFloat,"Unit_Mtl_Cost",V.DataTable.Lot(V.Local.iC).Matl_Cost!FieldValFloat,"Mfg_Date",V.Local.sDate,"Shipment_ID",V.DataTable.Head(V.DataTable.Head.RowCount--).Pck_No!FieldValTrim,"Invoice_No",V.DataTable.Batch(V.Local.i).Invc!FieldValTrim,"Company",V.DataTable.Head(V.DataTable.Head.RowCount--).Name_Customer_Ship!FieldValTrim)
+				F.Data.DataTable.SaveToDB("Vin","con","GCG_6372_Vin_Hist","Vin*!*Order_Number*!*Ord_Dtl_ID",3,"Vin@!@Vin*!*ITEM_NUM@!@ITEM_NUM*!*Order_Number@!@Order_Number*!*Ord_Dtl_ID@!@Ord_Dtl_ID*!*Unit_Price@!@Unit_Price*!*Unit_Mtl_Cost@!@Unit_Mtl_Cost*!*Mfg_Date@!@Mfg_Date*!*Shipment_ID@!@Shipment_ID*!*Invoice_No@!@Invoice_No*!*Company@!@Company")
+			F.Intrinsic.Control.EndIf
+			F.Data.DataTable.Close("Vin")
+		F.Intrinsic.Control.Next(V.Local.iC)
+		F.Data.DataTable.Close("Head")
+		F.Data.DataTable.Close("Lot")
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Intrinsic.UI.CloseWaitDialog
+	
+	F.Data.DataTable.Close("Batch")
+	
+	F.ODBC.Connection!Con.Close
+F.Intrinsic.Control.Else
+	F.Intrinsic.Control.If(v.Args.HOOK,=,"16504")
+		'Job - v.passed.000003
+		'Suffix v.passed.000004
+		'Part  v.passed.000008
+		F.ODBC.Connection!Con.OpenCompanyConnection(999)
+			F.Intrinsic.String.Build("Select Part as INV_ID, Serial_Number as VIN, Date_History as MFG_DATE, Matl_Cost as UNIT_MTL_COST From V_Item_History Where Date_History = '{0}' and Job = '{1}' and Suffix = '{2}' and Part = '{3}' and Sequence = '999999' and Code_Transaction = 'J52'",V.Ambient.Date.PervasiveDate,v.passed.000003,v.passed.000004,v.passed.000008,V.Local.sSql)
+			F.Data.DataTable.CreateFromSQL("VinHist","con",V.Local.sSql,True)
+			F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.VinHist.RowCount--,1)
+				F.Intrinsic.String.Build("Update GCG_6372_VIN_HIST Set MFG_Date = '{0}', UNIT_MTL_COST = {1} Where Inv_ID = '{2}' and Vin = '{3}'",V.DataTable.VinHist(V.Local.i).MFG_Date!FieldVal,V.DataTable.VinHist(V.Local.i).UNIT_MTL_COST!FieldValFloat,V.DataTable.VinHist(V.Local.i).INV_ID!FieldValTrim,,V.DataTable.VinHist(V.Local.i).VIN!FieldValTrim,V.Local.sSql)
+				F.ODBC.Connection!con.Execute(V.Local.sSql)
+			F.Intrinsic.Control.Next(V.Local.i)
+		F.ODBC.Connection!con.Close
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.CallSub(Exit)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Update_Vin_Hist_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Vin_Gen.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Exit)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Update_Vin_Hist.End
