@@ -1,0 +1,28 @@
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.i.Declare(Long,0)
+V.Local.sGAB.Declare(String,"")
+
+F.Intrinsic.Control.If(V.Caller.Switches,<>,"")
+	V.Local.i.Set(V.Caller.Switches.Long)
+	F.Intrinsic.Task.AppActivate(V.Local.i)
+	F.Intrinsic.Task.SendKeys("~")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Process_Button.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+Program.Sub.Main.End
