@@ -1,0 +1,470 @@
+Program.Sub.ScreenSU.Start
+Gui.Form..Create
+Gui.Form..Size(15360,10695)
+Gui.Form..MinX(0)
+Gui.Form..MinY(0)
+Gui.Form..Position(0,0)
+Gui.Form..BackColor(-2147483633)
+Gui.Form..MousePointer(0)
+Gui.Form..Event(UnLoad,Form_UnLoad)
+Gui.Form..Caption("Vin History")
+Gui.Form.GsGridVinHist.Create(GsGridControl)
+Gui.Form.GsGridVinHist.Size(14970,9435)
+Gui.Form.GsGridVinHist.Position(105,240)
+Gui.Form.GsGridVinHist.Anchor(15)
+Gui.Form.cmdSave.Create(Button)
+Gui.Form.cmdSave.Size(855,375)
+Gui.Form.cmdSave.Position(120,9765)
+Gui.Form.cmdSave.Anchor(6)
+Gui.Form.cmdSave.Caption("Save")
+Gui.Form.cmdSave.Event(Click,cmdSave_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+V.Global.bEdit.Declare(Boolean,False)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+Gui.Form.cmdSave.Enabled(False)
+
+F.Global.Security.IsInGroup(V.Caller.User,"SERGRP",V.Caller.CompanyCode,V.Global.bEdit)
+
+F.Intrinsic.Control.If(V.Global.bEdit)
+	Gui.Form.cmdSave.Visible(True)
+F.Intrinsic.Control.Else
+	Gui.Form.cmdSave.Visible(False)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.CallSub(Get_Data)
+F.Intrinsic.Control.CallSub(Set_Properties)
+
+Gui.Form..Show
+Gui.Form..AlwaysOnTop(True)
+Gui.Form..AlwaysOnTop(False)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Vin_Hist_Dashboard.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Main.End
+
+Program.Sub.Form_UnLoad.Start
+F.Intrinsic.Control.SetErrorHandler("Form_UnLoad_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sSerialize.Declare(String,"")
+
+Gui.Form.GsGridVinHist.Serialize("GVINHIST",V.Local.sSerialize)
+F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GVINHIST",6372,1000,False,"Serialize",False,0,-999.0,1/1/1980,12:00:00 AM,V.Local.sSerialize)
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Form_UnLoad_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+Program.Sub.Form_UnLoad.End
+
+Program.Sub.cmdSave_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmdSave_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.i.Declare(Long,0)
+
+Gui.Form.cmdSave.Enabled(False)
+
+F.Intrinsic.Control.If(V.DataView.VinHist!VVinHist.RowCount--,<>,-1)
+	F.Data.DataView.ToDataTable("VinHist","VVinHist","SaveVinHist",True)
+	F.Data.DataTable.AcceptChanges("VinHist")
+	F.ODBC.Connection!Con.OpenCOmpanyConnection
+	F.Data.DataTable.SaveToDB("SaveVinHist","con","GCG_6372_Vin_Hist","Vin*!*Order_Number*!*Ord_Dtl_ID",256,"Vin@!@Vin*!*Order_Number@!@Order_Number*!*Ord_Dtl_ID@!@Ord_Dtl_ID*!*AXLE_1_SERIAL@!@AXLE_1_SERIAL*!*AXLE_2_SERIAL@!@AXLE_2_SERIAL*!*AXLE_3_SERIAL@!@AXLE_3_SERIAL*!*CYLINDER_SERIAL@!@CYLINDER_SERIAL*!*PUMP_SERIAL@!@PUMP_SERIAL")
+	F.ODBC.Connection!Con.Close
+	F.Data.DataTable.Close("SaveVinHist")
+	F.Intrinsic.UI.Msgbox("Vin Hist Data Updated....")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdSave_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Vin_Hist_Dashboard.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.cmdSave_Click.End
+
+Program.Sub.Get_Data.Start
+F.Intrinsic.Control.SetErrorHandler("Get_Data_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.ODBC.Connection!Con.OpenCompanyConnection
+F.Data.DataTable.CreateFromSQL("VinHist","con","Select Vin, Config_Code, Inv_ID, Item_Num, Class, Description, Description2, Bom, Bom_Rev, Weight, GAWR, GVWR, Tire_Size, Rim, PSI, Single_Dual, Spare_Tire, Num_Axles, Model_Year, Company, Order_Number, Ord_Dtl_ID, PONO, WorkOrder_ID, Quote_ID, Unit_Price, List_Price, Unit_Mtl_Cost, Mfg_Date, Shipment_ID, Invoice_No, Axle_1_Serial, Axle_2_Serial, Axle_3_Serial, Cylinder_Serial, Pump_Serial From GCG_6372_Vin_Hist Order by Vin",True)
+'used for saving only modified records
+F.Data.DataView.Create("VinHist","VVinHist",16,"","")
+
+F.Data.DataTable.AddRowChangedEventHandler("VinHist","DT_Change")
+
+F.ODBC.Connection!con.Close
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Get_Data_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Vin_Hist_Dashboard.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Get_Data.End
+
+Program.Sub.Set_Properties.Start
+F.Intrinsic.Control.SetErrorHandler("Set_Properties_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.sSerialize.Declare(String,"")
+
+Gui.Form.GsGridVinHist.AddGridviewFromDatatable("GVinHist","VinHist")
+GUI.Form.GsGridVinHist.SetGridviewProperty("GVinHist", "OptionsViewColumnAutoWidth", False)
+Gui.Form.GsGridVinHist.SetGridviewProperty("GVinHist","Showgrouppanel",True)
+Gui.Form.GsGridVinHist.SetGridviewProperty("GVinHist","Multiselect",False)
+Gui.Form.GsGridVinHist.SetGridviewProperty("GVinHist","OptionsViewShowAutoFilterRow",True)
+Gui.Form.GsGridVinHist.SetGridviewProperty("GVinHist","OptionsFindAlwaysVisible",True)
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Vin","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Vin","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Vin","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Vin","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Vin","Caption","Vin")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Config_Code","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Config_Code","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Config_Code","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Config_Code","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Config_Code","Caption","Config Code")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Inv_ID","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Inv_ID","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Inv_ID","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Inv_ID","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Inv_ID","Caption","Inv ID")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Item_Num","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Item_Num","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Item_Num","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Item_Num","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Item_Num","Caption","Item Number")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Class","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Class","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Class","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Class","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Class","Caption","Class")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Description","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Description","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Description","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Description","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Description","Caption","Description")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Description2","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Description2","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Description2","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Description2","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Description2","Caption","Long Description")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Bom","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Bom","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Bom","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Bom","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Bom","Caption","Bom")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Bom_Rev","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Bom_Rev","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Bom_Rev","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Bom_Rev","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Bom_Rev","Caption","Bom Rev")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Weight","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Weight","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Weight","Caption","Weight")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GAWR","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GAWR","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GAWR","Caption","GAWR")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GVWR","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GVWR","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GVWR","Caption","GVWR")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Tire_Size","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Tire_Size","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Tire_Size","Caption","Tire Size")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Rim","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Rim","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Rim","Caption","Rim")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PSI","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PSI","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PSI","Caption","PSI")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Single_Dual","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Single_Dual","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Single_Dual","Caption","Single/Dual")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Spare_Tire","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Spare_Tire","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Spare_Tire","Caption","Spare Tire")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Num_Axles","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Num_Axles","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Num_Axles","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Num_Axles","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Num_Axles","Caption","# Axles")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Model_Year","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Model_Year","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Model_Year","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Model_Year","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Model_Year","Caption","Model Year")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Company","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Company","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Company","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Company","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Company","Caption","Company")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Order_Number","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Order_Number","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Order_Number","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Order_Number","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Order_Number","Caption","Order #")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Ord_Dtl_ID","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Ord_Dtl_ID","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Ord_Dtl_ID","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Ord_Dtl_ID","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Ord_Dtl_ID","Caption","Ord Dtl ID")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PONO","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PONO","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PONO","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PONO","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PONO","Caption","Cust PO")
+ 
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","WorkOrder_ID","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","WorkOrder_ID","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","WorkOrder_ID","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","WorkOrder_ID","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","WorkOrder_ID","Caption","WorkOrder ID")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Quote_ID","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Quote_ID","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Quote_ID","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Quote_ID","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Quote_ID","Caption","Quote ID")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Unit_Price","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Unit_Price","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Unit_Price","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Unit_Price","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Unit_Price","Caption","Unit Price")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","List_Price","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","List_Price","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","List_Price","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","List_Price","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","List_Price","Caption","List Price")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Unit_Mtl_Cost","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Unit_Mtl_Cost","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Unit_Mtl_Cost","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Unit_Mtl_Cost","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Unit_Mtl_Cost","Caption","Unit Mtl Cost")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Mfg_Date","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Mfg_Date","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Mfg_Date","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Mfg_Date","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Mfg_Date","Caption","Mfg Date")
+ 
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Shipment_ID","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Shipment_ID","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Shipment_ID","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Shipment_ID","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Shipment_ID","Caption","Shipment ID")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Invoice_No","ReadOnly",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Invoice_No","AllowEdit",False)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Invoice_No","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Invoice_No","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Invoice_No","Caption","Invoice No")
+
+F.Intrinsic.Control.If(V.Global.bEdit)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Weight","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Weight","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Weight","MaxLength","70")
+
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GAWR","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GAWR","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GAWR","MaxLength","70")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GVWR","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GVWR","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GVWR","MaxLength","70")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Tire_Size","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Tire_Size","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Tire_Size","MaxLength","70")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Rim","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Rim","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Rim","MaxLength","70")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PSI","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PSI","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PSI","MaxLength","70")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Single_Dual","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Single_Dual","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Single_Dual","MaxLength","70")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Spare_Tire","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Spare_Tire","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Spare_Tire","MaxLength","70")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_1_Serial","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_1_Serial","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_1_Serial","MaxLength","30")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_2_Serial","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_2_Serial","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_2_Serial","MaxLength","30")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_3_Serial","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_3_Serial","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_3_Serial","MaxLength","30")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Cylinder_Serial","ReadOnly",False)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Cylinder_Serial","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Cylinder_Serial","MaxLength","30")
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Pump_Serial","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Pump_Serial","AllowEdit",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Pump_Serial","MaxLength","30")
+F.Intrinsic.Control.Else
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Weight","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Weight","AllowEdit",False)
+
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GAWR","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GAWR","AllowEdit",False)
+
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GVWR","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","GVWR","AllowEdit",False)
+
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Tire_Size","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Tire_Size","AllowEdit",False)
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Rim","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Rim","AllowEdit",False)
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PSI","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","PSI","AllowEdit",False)
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Single_Dual","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Single_Dual","AllowEdit",False)
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Spare_Tire","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Spare_Tire","AllowEdit",False)
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_1_Serial","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_1_Serial","AllowEdit",False)
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_2_Serial","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_2_Serial","AllowEdit",False)
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_3_Serial","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_3_Serial","AllowEdit",False)
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Cylinder_Serial","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Cylinder_Serial","AllowEdit",False)
+	
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Pump_Serial","ReadOnly",True)
+	Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Pump_Serial","AllowEdit",False)
+F.Intrinsic.Control.EndIf
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_1_Serial","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_1_Serial","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_1_Serial","Caption","Axle 1 Serial")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_2_Serial","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_2_Serial","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_2_Serial","Caption","Axle 2 Serial")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_3_Serial","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_3_Serial","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Axle_3_Serial","Caption","Axle 3 Serial")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Cylinder_Serial","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Cylinder_Serial","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Cylinder_Serial","Caption","Cylinder Serial")
+
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Pump_Serial","HeaderForeColor",v.Color.PRI-GSS-00)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Pump_Serial","HeaderFontBold",True)
+Gui.Form.GsGridVinHist.SetColumnProperty("GVINHIST","Pump_Serial","Caption","Pump Serial")
+
+F.Global.Registry.ReadValue(V.Caller.User, V.Caller.CompanyCode, "GVINHIST", 6372, 1000, 6, "", V.Local.sSerialize)
+
+F.Intrinsic.Control.If(V.Local.sSerialize.Trim,<>,"")
+	Gui.Form.GsGridVinHist.Deserialize(V.Local.sSerialize)
+F.Intrinsic.Control.EndIf
+
+Gui.Form.GsGridVinHist.MainView("GVINHIST")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Set_Properties_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Vin_Hist_Dashboard.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Set_Properties.End
+
+Program.Sub.DT_Change.Start
+F.Intrinsic.Control.SetErrorHandler("DT_Change_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+Gui.Form.cmdSave.Enabled(True)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("DT_Change_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Vin_Hist_Dashboard.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Form_Unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.DT_Change.End
+
+Program.Sub.Comments.Start
+${$5$}$2.0.0.0$}$2
+${$6$}$dduncan$}$20210719094957955$}$r0o+00bj735YsiGsQ60YIo/Zb+26OZQGaY+lDo9p8J7RpihIO9sNOVhgISpstkSMEA4k1/QNdSw=
+Program.Sub.Comments.End
