@@ -1,0 +1,146 @@
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.If(V.Caller.Switches,<>,"")
+	'pausing to make sure serials are saved to the job serial table.
+	F.Intrinsic.UI.Sleep(5)
+	F.Intrinsic.Control.CallSub(Save_Vins,"WO",V.Caller.Switches)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Process_Vins.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+Program.Sub.Main.End
+
+Program.Sub.Save_Vins.Start
+F.Intrinsic.Control.SetErrorHandler("Save_Vins_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+V.Local.i.Declare(Long,0)
+V.Local.sSql.Declare(String,"")
+V.Local.sPart.Declare(String,"")
+V.Local.sBom.Declare(String,"")
+V.Local.sRev.Declare(String,"")
+v.Local.sYear.Declare(String,"")
+V.Local.sJob.Declare(String,"")
+V.Local.sLongDesc.Declare(String,"")
+V.Local.sNumAx.Declare(String,"")
+V.Local.sWO.Declare(String,"")
+
+F.Data.DataTable.Create("Vin",True)
+F.Data.DataTable.AddColumn("Vin","Vin",String)
+F.Data.DataTable.AddColumn("Vin","Bom",String)
+F.Data.DataTable.AddColumn("Vin","BOM_REV",String)
+F.Data.DataTable.AddColumn("Vin","MODEL_YEAR",String)
+F.Data.DataTable.AddColumn("Vin","Inv_ID",String)
+F.Data.DataTable.AddColumn("Vin","ITEM_NUM",String)
+F.Data.DataTable.AddColumn("Vin","Description2",String)
+F.Data.DataTable.AddColumn("Vin","NUM_AXLES",Long)
+F.Data.DataTable.AddColumn("Vin","WORKORDER_ID",String)
+F.Data.DataTable.AddColumn("Vin","Weight",Float)
+F.Data.DataTable.AddColumn("Vin","Class",String)
+F.Data.DataTable.AddColumn("Vin","Description",String)
+F.Data.DataTable.AddColumn("Vin","CONFIG_CODE",String)
+F.Data.DataTable.AddColumn("Vin","GAWR",String)
+F.Data.DataTable.AddColumn("Vin","GVWR",String)
+F.Data.DataTable.AddColumn("Vin","TIRE_SIZE",String)
+F.Data.DataTable.AddColumn("Vin","RIM",String)
+F.Data.DataTable.AddColumn("Vin","PSI",String)
+F.Data.DataTable.AddColumn("Vin","SINGLE_DUAL",String)
+F.Data.DataTable.AddColumn("Vin","SPARE_TIRE",String)
+F.Data.DataTable.AddColumn("Vin","Order_Number",String)
+F.Data.DataTable.AddColumn("Vin","ORD_DTL_ID",String)
+F.Data.DataTable.AddColumn("Vin","PONO",String)
+F.Data.DataTable.AddColumn("Vin","QUOTE_ID",String)
+F.Data.DataTable.AddColumn("Vin","Company",String)
+F.Data.DataTable.AddColumn("Vin","List_Price",Float)
+
+F.ODBC.Connection!Con.OpenCompanyConnection
+
+F.Intrinsic.String.Split(V.Args.WO,"|~|",V.Local.sJob)
+F.Intrinsic.String.Replace(V.Args.WO,"|~|","-",V.Local.sWO)
+'getting part and due date
+F.Intrinsic.String.Build("Select Part, Date_Due From V_Job_Header Where Job = '{0}' and Suffix = '{1}'",V.Local.sJob(0).Trim,V.Local.sJob(1).Trim,V.Local.sSql)
+F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sPart)
+	
+F.Intrinsic.String.Split(V.Local.sPart,"*!*",V.Local.sPart)
+
+F.ODBC.Connection!Con.ExecuteAndReturn("Select Top 1 Model_Year From GCG_6372_WMI Order by Model_Year Desc",V.Local.sYear)
+'F.Intrinsic.String.Format(V.Local.sYear,"YYYY",V.Local.sYear)
+
+F.Intrinsic.String.RPad(V.Local.sPart," ",20,V.Local.sPart)
+F.Intrinsic.String.Right(V.Local.sPart,3,V.Local.sRev)
+F.Intrinsic.String.Left(V.Local.sPart,17,V.Local.sBom)
+
+F.Intrinsic.String.Mid(V.Local.sPart,10,1,V.Local.sNumAx)
+
+F.Intrinsic.String.Build("Select Serial_Start From V_Job_Serial Where Job = '{0}' and Suffix = '{1}'",V.Local.sJob(0).Trim,V.Local.sJob(1).Trim,V.Local.sSql)
+
+F.Data.DataTable.CreateFromSQL("Serial","con",V.Local.sSql,True)
+
+F.Intrinsic.String.Build("Select Text From Inv_Extra_Text Where Part = '{0}'",V.Local.sPart.Trim,V.Local.sSql)
+F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sLongDesc)
+
+F.Intrinsic.String.Build("Select B.LBS, A.Product_Line, A.Description From V_Inventory_Mstr A Left Join V_Inventory_Mst2 B on A.Part = B.Part and A.Location = B.Location Where A.Part = '{0}'",V.Local.sPart.Trim,V.Local.sSql)
+F.Data.DataTable.CreateFromSQL("INV","con",V.Local.sSql,True)
+
+F.Intrinsic.String.Build("Select User1 as Config_Code, User5 as GAWR, USER9 as GVWR, USER13 as SINGLE_DUAL, USER17 as TIRE_SIZE, USER21 as PSI, USER25 as RIM, USER29 as SPARE_TIRE From INV_EXTRA Where Part = '{0}' and Rev = '{1}'",V.Local.sBom.Trim,V.Local.sRev.Trim,V.Local.sSql)
+F.Data.DataTable.CreateFromSQL("EXTRA","con",V.Local.sSql,True)
+
+F.Intrinsic.String.Build("Select A.Order_No, A.Order_Line, B.Customer_PO, C.Name_Customer_Ship, B.Quote, D.Price From V_Order_To_WO A Left Join V_Order_Header B On A.Order_No = B.Order_No LEFT JOIN V_Order_Ship_To C on A.Order_NO = C.Order_No LEFT JOIN V_Order_Lines D on A.Order_NO = D.Order_NO and A.Order_Line = D.Record_No Where A.Job = '{0}' and A.Suffix = '{1}'",V.Local.sJob(0).Trim,V.Local.sJob(1).Trim,V.Local.sSql)
+F.Data.DataTable.CreateFromSQL("ORDWO","con",V.Local.sSql,True)
+
+F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.Serial.RowCount--,1)
+	F.Data.DataTable.AddRow("Vin","Vin",V.DataTable.Serial(V.Local.i).Serial_Start!FieldValTrim)
+F.Intrinsic.Control.Next(V.Local.i)
+
+F.Intrinsic.Control.If(V.DataTable.Vin.RowCount--,<>,-1)
+	F.Data.DataTable.SetValue("Vin",-1,"Bom",V.Local.sBom.Trim,"BOM_REV",v.Local.sRev.Trim,"Model_Year",V.Local.sYear,"Inv_ID",V.Local.sPart.Trim,"ITEM_NUM",V.Local.sPart.Trim,"Description2",V.Local.sLongDesc.Trim,"NUM_AXLES",V.Local.sNumAx.Long,"WORKORDER_ID",V.Local.sWO.Trim)
+	F.Intrinsic.Control.If(V.DataTable.INV.RowCount--,<>,-1)
+		F.Data.DataTable.SetValue("vin",-1,"Weight",V.DataTable.INV(V.DataTable.INV.RowCount--).LBS!FieldVal,"Class",V.DataTable.INV(V.DataTable.INV.RowCount--).Product_Line!FieldValTrim,"Description",V.DataTable.INV(V.DataTable.INV.RowCount--).Description!FieldVal)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.If(V.DataTable.EXTRA.RowCount--,<>,-1)
+		F.Data.DataTable.SetValue("vin",-1,"CONFIG_CODE",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).CONFIG_CODE!FieldValTrim,"GAWR",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).GAWR!FieldValTrim,"GVWR",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).GVWR!FieldValTrim)
+		F.Data.DataTable.SetValue("vin",-1,"TIRE_SIZE",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).TIRE_SIZE!FieldValTrim,"RIM",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).RIM!FieldValTrim,"PSI",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).PSI!FieldValTrim)
+		F.Data.DataTable.SetValue("vin",-1,"SINGLE_DUAL",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).SINGLE_DUAL!FieldValTrim,"SPARE_TIRE",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).SPARE_TIRE!FieldValTrim)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.If(V.DataTable.ORDWO.RowCount--,<>,-1)
+		F.Data.DataTable.SetValue("Vin",-1,"Order_Number",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).Order_NO!FieldValTrim,"ORD_DTL_ID",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).Order_Line!FieldValTrim,"PONO",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).Customer_PO!FieldValTrim,"QUOTE_ID",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).QUOTE!FieldValTrim,"Company",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).Name_Customer_Ship!FieldValTrim,"List_Price",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).Price!FieldVal)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.Vin.RowCount--,<>,-1)
+	F.Data.DataTable.SaveToDB("Vin","con","GCG_6372_Vin_Hist","",128,"VIN@!@VIN*!*BOM@!@BOM*!*BOM_REV@!@BOM_REV*!*MODEL_YEAR@!@MODEL_YEAR*!*INV_ID@!@INV_ID*!*ITEM_NUM@!@ITEM_NUM*!*DESCRIPTION2@!@DESCRIPTION2*!*NUM_AXLES@!@NUM_AXLES*!*WORKORDER_ID@!@WORKORDER_ID*!*WEIGHT@!@WEIGHT*!*CLASS@!@CLASS*!*DESCRIPTION@!@DESCRIPTION*!*CONFIG_CODE@!@CONFIG_CODE*!*GAWR@!@GAWR*!*GVWR@!@GVWR*!*TIRE_SIZE@!@TIRE_SIZE*!*RIM@!@RIM*!*PSI@!@PSI*!*SINGLE_DUAL@!@SINGLE_DUAL*!*SPARE_TIRE@!@SPARE_TIRE*!*ORDER_NUMBER@!@ORDER_NUMBER*!*ORD_DTL_ID@!@ORD_DTL_ID*!*PONO@!@PONO*!*QUOTE_ID@!@QUOTE_ID*!*COMPANY@!@COMPANY*!*LIST_PRICE@!@LIST_PRICE")
+F.Intrinsic.Control.EndIf
+
+F.ODBC.Connection!Con.Close
+
+F.Data.DataTable.Close("Vin")
+F.Data.DataTable.Close("Serial")
+F.Data.DataTable.Close("INV")
+F.Data.DataTable.Close("EXTRA")
+F.Data.DataTable.Close("ORDWO")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Save_Vins_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_Process_Vins.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+Program.Sub.Save_Vins.End
