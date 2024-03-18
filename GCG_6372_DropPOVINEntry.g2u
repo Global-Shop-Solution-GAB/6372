@@ -1,0 +1,434 @@
+﻿Program.Sub.ScreenSU.Start
+Gui.frmAddVIN..Create(BaseForm)
+Gui.frmAddVIN..Caption("Add VINs from Drop Ship - PO 0000001")
+Gui.frmAddVIN..Size(893,640)
+Gui.frmAddVIN..MinX(0)
+Gui.frmAddVIN..MinY(0)
+Gui.frmAddVIN..Position(0,0)
+Gui.frmAddVIN..AlwaysOnTop(False)
+Gui.frmAddVIN..FontName("Tahoma")
+Gui.frmAddVIN..FontSize(8.25)
+Gui.frmAddVIN..ControlBox(True)
+Gui.frmAddVIN..MaxButton(True)
+Gui.frmAddVIN..MinButton(True)
+Gui.frmAddVIN..MousePointer(0)
+Gui.frmAddVIN..Moveable(True)
+Gui.frmAddVIN..Sizeable(True)
+Gui.frmAddVIN..ShowInTaskBar(True)
+Gui.frmAddVIN..TitleBar(True)
+Gui.frmAddVIN..Event(UnLoad,frmAddVIN_UnLoad)
+Gui.frmAddVIN.lbl1.Create(Label,"VIN Number",True,57,13,0,13,72,True,0,"Tahoma",8.25,,0,0)
+Gui.frmAddVIN.lbl1.BorderStyle(0)
+Gui.frmAddVIN.txtVIN.Create(TextBox,"",True,324,20,0,12,87,True,0,"Tahoma",8.25,,1)
+Gui.frmAddVIN.txtVIN.TabStop(True)
+Gui.frmAddVIN.txtVIN.TabIndex(3)
+Gui.frmAddVIN.lbl2.Create(Label,"PO Line Number",True,76,13,0,12,17,True,0,"Tahoma",8.25,,0,0)
+Gui.frmAddVIN.lbl2.BorderStyle(0)
+Gui.frmAddVIN.txtPOLine.Create(TextBox,"",True,80,20,0,12,32,True,0,"Tahoma",8.25,,1)
+Gui.frmAddVIN.txtPOLine.TabStop(True)
+Gui.frmAddVIN.txtPOLine.TabIndex(1)
+Gui.frmAddVIN.cmd1.Create(Button)
+Gui.frmAddVIN.cmd1.Enabled(True)
+Gui.frmAddVIN.cmd1.Visible(True)
+Gui.frmAddVIN.cmd1.Zorder(0)
+Gui.frmAddVIN.cmd1.Size(27,23)
+Gui.frmAddVIN.cmd1.Position(98,31)
+Gui.frmAddVIN.cmd1.Caption("")
+Gui.frmAddVIN.cmd1.FontName("Tahoma")
+Gui.frmAddVIN.cmd1.FontSize(8.25)
+Gui.frmAddVIN.cmd1.SvgPicture("icon_browser_color")
+Gui.frmAddVIN.cmd1.TabStop(True)
+Gui.frmAddVIN.cmd1.TabIndex(2)
+Gui.frmAddVIN.cmd1.Event(Click,cmd1_Click)
+Gui.frmAddVIN.lbl3.Create(Label,"Mfg Date",True,44,13,0,347,72,True,0,"Tahoma",8.25,,0,0)
+Gui.frmAddVIN.lbl3.BorderStyle(0)
+Gui.frmAddVIN.dtpMfgDate.Create(DatePicker)
+Gui.frmAddVIN.dtpMfgDate.Enabled(True)
+Gui.frmAddVIN.dtpMfgDate.Visible(True)
+Gui.frmAddVIN.dtpMfgDate.Zorder(0)
+Gui.frmAddVIN.dtpMfgDate.Size(100,20)
+Gui.frmAddVIN.dtpMfgDate.Position(345,87)
+Gui.frmAddVIN.dtpMfgDate.CheckBox(False)
+Gui.frmAddVIN.dtpMfgDate.FontName("Tahoma")
+Gui.frmAddVIN.dtpMfgDate.FontSize(8.25)
+Gui.frmAddVIN.dtpMfgDate.TabStop(True)
+Gui.frmAddVIN.dtpMfgDate.TabIndex(4)
+Gui.frmAddVIN.lbl4.Create(Label,"Packing Slip Number",True,95,13,0,461,72,True,0,"Tahoma",8.25,,0,0)
+Gui.frmAddVIN.lbl4.BorderStyle(0)
+Gui.frmAddVIN.txtPackSlip.Create(TextBox,"",True,294,20,0,460,87,True,0,"Tahoma",8.25,,1)
+Gui.frmAddVIN.txtPackSlip.TabStop(True)
+Gui.frmAddVIN.txtPackSlip.TabIndex(5)
+Gui.frmAddVIN.lbl5.Create(Label,"Part Number",True,60,13,0,138,18,True,0,"Tahoma",8.25,,0,0)
+Gui.frmAddVIN.lbl5.BorderStyle(0)
+Gui.frmAddVIN.txtPart.Create(TextBox,"",True,198,20,0,137,33,True,0,"Tahoma",8.25,,1)
+Gui.frmAddVIN.txtPart.Locked(True)
+Gui.frmAddVIN.txtPart.TabStop(True)
+Gui.frmAddVIN.txtPart.TabIndex(11)
+Gui.frmAddVIN.lbl6.Create(Label,"Description",True,53,13,0,347,18,True,0,"Tahoma",8.25,,0,0)
+Gui.frmAddVIN.lbl6.BorderStyle(0)
+Gui.frmAddVIN.txtDescription.Create(TextBox,"",True,294,20,0,346,33,True,0,"Tahoma",8.25,,1)
+Gui.frmAddVIN.txtDescription.Locked(True)
+Gui.frmAddVIN.txtDescription.TabStop(True)
+Gui.frmAddVIN.txtDescription.TabIndex(12)
+Gui.frmAddVIN.cmdSave.Create(Button)
+Gui.frmAddVIN.cmdSave.Enabled(True)
+Gui.frmAddVIN.cmdSave.Visible(True)
+Gui.frmAddVIN.cmdSave.Zorder(0)
+Gui.frmAddVIN.cmdSave.Size(75,23)
+Gui.frmAddVIN.cmdSave.Position(805,31)
+Gui.frmAddVIN.cmdSave.Caption("Save")
+Gui.frmAddVIN.cmdSave.FontName("Tahoma")
+Gui.frmAddVIN.cmdSave.FontSize(8.25)
+Gui.frmAddVIN.cmdSave.TabStop(True)
+Gui.frmAddVIN.cmdSave.TabIndex(6)
+Gui.frmAddVIN.cmdSave.Event(Click,cmdSave_Click)
+Gui.frmAddVIN.cmdClear.Create(Button)
+Gui.frmAddVIN.cmdClear.Enabled(True)
+Gui.frmAddVIN.cmdClear.Visible(True)
+Gui.frmAddVIN.cmdClear.Zorder(0)
+Gui.frmAddVIN.cmdClear.Size(75,23)
+Gui.frmAddVIN.cmdClear.Position(805,59)
+Gui.frmAddVIN.cmdClear.TabStop(True)
+Gui.frmAddVIN.cmdClear.TabIndex(7)
+Gui.frmAddVIN.cmdClear.Caption("Clear")
+Gui.frmAddVIN.cmdClear.FontName("Tahoma")
+Gui.frmAddVIN.cmdClear.FontSize(8.25)
+Gui.frmAddVIN.cmdClear.Event(Click,cmdClear_Click)
+Gui.frmAddVIN.cmdDelete.Create(Button)
+Gui.frmAddVIN.cmdDelete.Enabled(True)
+Gui.frmAddVIN.cmdDelete.Visible(True)
+Gui.frmAddVIN.cmdDelete.Zorder(0)
+Gui.frmAddVIN.cmdDelete.Size(75,23)
+Gui.frmAddVIN.cmdDelete.Position(805,87)
+Gui.frmAddVIN.cmdDelete.TabStop(True)
+Gui.frmAddVIN.cmdDelete.TabIndex(8)
+Gui.frmAddVIN.cmdDelete.Caption("Delete")
+Gui.frmAddVIN.cmdDelete.FontName("Tahoma")
+Gui.frmAddVIN.cmdDelete.FontSize(8.25)
+Gui.frmAddVIN.cmdDelete.Event(Click,cmdDelete_Click)
+Gui.frmAddVIN.GsGcVINs.Create(GsGridControl)
+Gui.frmAddVIN.GsGcVINs.Enabled(True)
+Gui.frmAddVIN.GsGcVINs.Visible(True)
+Gui.frmAddVIN.GsGcVINs.Zorder(0)
+Gui.frmAddVIN.GsGcVINs.Size(866,384)
+Gui.frmAddVIN.GsGcVINs.Position(13,145)
+Gui.frmAddVIN.GsGcVINs.Event(RowCellClick,GsGcVINs_RowCellClick)
+Gui.frmAddVIN.GsGcVINs.TabStop(True)
+Gui.frmAddVIN.GsGcVINs.TabIndex(9)
+Gui.frmAddVIN.cmdSubmit.Create(Button)
+Gui.frmAddVIN.cmdSubmit.Enabled(True)
+Gui.frmAddVIN.cmdSubmit.Visible(True)
+Gui.frmAddVIN.cmdSubmit.Zorder(0)
+Gui.frmAddVIN.cmdSubmit.Size(75,23)
+Gui.frmAddVIN.cmdSubmit.Position(403,573)
+Gui.frmAddVIN.cmdSubmit.TabStop(True)
+Gui.frmAddVIN.cmdSubmit.TabIndex(10)
+Gui.frmAddVIN.cmdSubmit.Caption("Submit VINs")
+Gui.frmAddVIN.cmdSubmit.FontName("Tahoma")
+Gui.frmAddVIN.cmdSubmit.FontSize(8.25)
+Gui.frmAddVIN.cmdSubmit.Event(Click,cmdSubmit_Click)
+Gui.frmAddVIN.lbl7.Create(Label,"PO Qty",True,35,13,0,650,18,True,0,"Tahoma",8.25,,0,0)
+Gui.frmAddVIN.lbl7.BorderStyle(0)
+Gui.frmAddVIN.txtQty.Create(TextBox,"",True,105,20,0,649,33,True,0,"Tahoma",8.25,,1)
+Gui.frmAddVIN.txtQty.TabStop(True)
+Gui.frmAddVIN.txtQty.TabIndex(13)
+Gui.frmAddVIN.txtQty.Locked(True)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+	v.Global.sPO.Declare
+	v.Global.iSelectedIndex.Declare(Long,-1)
+Program.Sub.Preflight.End
+
+'=====================FINISHED=======================
+Program.Sub.Main.Start
+	v.Local.sTitle.Declare
+	v.Local.sSQL.Declare
+	v.Local.sDropPO.Declare
+	Function.Intrinsic.UI.UsePixels ' Allows you to use Pixels instead of Twips throughout
+	
+	'Hook 15041 - PO Receipts Pre-OK
+	f.Intrinsic.Control.If(v.Caller.Hook,=,15041)
+		'Get the PO number from the screen 
+		f.Intrinsic.String.LPad(v.Passed.000002,"0",7,v.Global.sPO)
+		
+		'Open connection
+		f.ODBC.Connection!con.opencompanyconnection(600)
+		
+		'Check if the PO is a drop PO.  Exit if not.
+		f.Intrinsic.String.Build("select po from v_po_drop_ship where po='{0}'",v.Global.sPO,v.Local.sSQL)
+		f.ODBC.Connection!con.ExecuteAndReturn(v.Local.sSQL,v.Local.sDropPO)
+		f.Intrinsic.Control.If(v.Local.sDropPO,!=,"")			
+			'Preformat the gridview
+			f.Intrinsic.Control.CallSub(LoadDTEmpty)
+			
+			'Get the total number received
+			f.Intrinsic.Control.CallSub(GetRecvQty)
+			
+			'Open screen
+			gui.frmAddVIN..Show
+			
+			'Write PO to the form title
+			f.Intrinsic.String.Build("Add VINs from Drop Ship - PO {0}",v.Global.sPO,v.Local.sTitle)
+			gui.frmAddVIN..Caption(v.Local.sTitle)
+		f.Intrinsic.Control.EndIf
+	f.Intrinsic.Control.EndIf
+Program.Sub.Main.End
+
+Program.Sub.LoadDTEmpty.Start
+	'Load all columns in the GV.  No row data.
+	f.Data.DataTable.Create("dtVINs",true)
+	f.Data.DataTable.AddColumn("dtVINs","Line","String")
+	f.Data.DataTable.AddColumn("dtVINs","Inv_ID","String")
+	f.Data.DataTable.AddColumn("dtVINs","Description","String")
+	f.Data.DataTable.AddColumn("dtVINs","Vin","String")
+	f.Data.DataTable.AddColumn("dtVINs","Mfg_Date","Date")
+	f.Data.DataTable.AddColumn("dtVINs","SHIPMENT_ID","String")
+	
+	gui.frmAddVIN.GsGcVINs.AddGridviewFromDatatable("gvVINs","dtVINs")
+	
+	'Set column captions
+	gui.frmAddVIN.GsGcVINs.SetColumnProperty("gvVINs","Line","Caption","POLine")
+	gui.frmAddVIN.GsGcVINs.SetColumnProperty("gvVINs","Inv_ID","Caption","Part")
+	gui.frmAddVIN.GsGcVINs.SetColumnProperty("gvVINs","Shipment_ID","Caption","PackSlipNumber")
+	
+	'Set date format
+	gui.frmAddVIN.GsGcVINs.SetColumnProperty("gvVINs", "Mfg_Date", "DisplayCustomDatetime", "d")
+	
+	'Set gridview to not editable
+	gui.frmAddVIN.GsGcVINs.SetGridviewProperty("gvVINs","Editable",False)
+	
+	gui.frmAddVIN.GsGcVINs.MainView("gvVINs")
+	
+	'Add in necessary columns to the datatable
+	F.Data.DataTable.AddColumn("dtVINs","Bom",String)
+	F.Data.DataTable.AddColumn("dtVINs","BOM_REV",String)
+	F.Data.DataTable.AddColumn("dtVINs","MODEL_YEAR",String)
+	F.Data.DataTable.AddColumn("dtVINs","ITEM_NUM",String)
+	F.Data.DataTable.AddColumn("dtVINs","Description2",String)
+	F.Data.DataTable.AddColumn("dtVINs","NUM_AXLES",Long)
+	F.Data.DataTable.AddColumn("dtVINs","WORKORDER_ID",String)
+	F.Data.DataTable.AddColumn("dtVINs","Weight",Float)
+	F.Data.DataTable.AddColumn("dtVINs","Class",String)
+	F.Data.DataTable.AddColumn("dtVINs","CONFIG_CODE",String)
+	F.Data.DataTable.AddColumn("dtVINs","GAWR",String)
+	F.Data.DataTable.AddColumn("dtVINs","GVWR",String)
+	F.Data.DataTable.AddColumn("dtVINs","TIRE_SIZE",String)
+	F.Data.DataTable.AddColumn("dtVINs","RIM",String)
+	F.Data.DataTable.AddColumn("dtVINs","PSI",String)
+	F.Data.DataTable.AddColumn("dtVINs","SINGLE_DUAL",String)
+	F.Data.DataTable.AddColumn("dtVINs","SPARE_TIRE",String)
+	F.Data.DataTable.AddColumn("dtVINs","Order_Number",String)
+	F.Data.DataTable.AddColumn("dtVINs","ORD_DTL_ID",String)
+	F.Data.DataTable.AddColumn("dtVINs","PONO",String)
+	F.Data.DataTable.AddColumn("dtVINs","QUOTE_ID",String)
+	F.Data.DataTable.AddColumn("dtVINs","Company",String)
+	F.Data.DataTable.AddColumn("dtVINs","List_Price",Float)
+Program.Sub.LoadDTEmpty.End
+
+Program.Sub.cmdSave_Click.Start
+	'Write to the datatable.
+	f.Intrinsic.Control.If(v.Global.iSelectedIndex,=,-1)
+		'Add new row
+		f.Data.DataTable.AddRow("dtVINs","Line",v.Screen.frmAddVIN!txtPOLine.Text,"Inv_ID",v.Screen.frmAddVIN!txtPart.Text,"Description",v.Screen.frmAddVIN!txtDescription.Text, "Vin", v.Screen.frmAddVIN!txtVIN.Text, "Mfg_Date", v.Screen.frmAddVIN!dtpMfgDate.Value, "SHIPMENT_ID", v.Screen.frmAddVIN!txtPackSlip.Text)
+	f.Intrinsic.Control.Else
+		'Update selected row
+		f.Data.DataTable.SetValue("dtVINs",v.Global.iSelectedIndex, "Line",v.Screen.frmAddVIN!txtPOLine.Text,"Inv_ID",v.Screen.frmAddVIN!txtPart.Text,"Description",v.Screen.frmAddVIN!txtDescription.Text, "Vin", v.Screen.frmAddVIN!txtVIN.Text, "Mfg_Date", v.Screen.frmAddVIN!dtpMfgDate.Value, "SHIPMENT_ID", v.Screen.frmAddVIN!txtPackSlip.Text)
+	f.Intrinsic.Control.EndIf
+	
+	'Clear the screen.
+	f.Intrinsic.Control.CallSub(ResetForm)
+Program.Sub.cmdSave_Click.End
+
+Program.Sub.ResetForm.Start
+	'Clear out the VIN textbox.  Leave the datetimepicker as its current value.
+	gui.frmAddVIN.txtVIN.Text("")
+	V.Global.iSelectedIndex.Set(-1)
+Program.Sub.ResetForm.End
+
+Program.Sub.cmdClear_Click.Start
+	f.Intrinsic.Control.CallSub(ResetForm)
+Program.Sub.cmdClear_Click.End
+
+Program.Sub.cmdDelete_Click.Start
+	v.Local.iRet.Declare
+	'Delete the selected row in the DT.
+	f.Intrinsic.UI.Msgbox("Delete record?","Confirm",4,v.Local.iRet)
+	f.Intrinsic.Control.If(v.Local.iRet,=,6)
+		f.Data.DataTable.DeleteRow("dtVINs",v.Global.iSelectedIndex)
+		f.Intrinsic.Control.CallSub(ResetForm)
+	f.Intrinsic.Control.EndIf
+Program.Sub.cmdDelete_Click.End
+
+Program.Sub.cmd1_Click.Start
+	v.Local.sRet.Declare
+	v.Local.sBrw.Declare
+	v.Local.sTitles.Declare(String, "PO*!*Line*!*Part*!*Description*!*PO Qty")
+	v.Local.sWidths.Declare(String, "100*!*75*!*150*!*250*!*75")
+	
+	f.Intrinsic.String.Split(v.Local.sTitles,"*!*", v.Local.sTitles)
+	f.Intrinsic.String.Split(v.Local.sWidths,"*!*", v.Local.sWidths)
+	
+	f.Intrinsic.String.Build("select purchase_order, record_no, part, description, qty_order from v_po_lines where purchase_order='{0}'",v.Global.sPO,v.Local.sBrw)
+	f.Intrinsic.UI.Browser("Select a PO Line","con",v.Local.sBrw, v.Local.sTitles, v.Local.sWidths, v.Local.sRet)
+	
+	f.Intrinsic.Control.If(v.Local.sRet,!=,"***CANCEL***")
+		'Write the chosen line back to the screen, fill in the part number and description from INV Master.
+		f.Intrinsic.String.Split(v.Local.sRet,"*!*",v.Local.sRet)
+		gui.frmAddVIN.txtPOLine.Text(v.Local.sRet(1))
+		gui.frmAddVIN.txtPart.Text(v.Local.sRet(2))
+		gui.frmAddVIN.txtDescription.Text(v.Local.sRet(3))
+	f.Intrinsic.Control.EndIf
+	
+Program.Sub.cmd1_Click.End
+
+Program.Sub.GsGcVINs_RowCellClick.Start
+	'Display the selected line in the fields at the top of the screen.
+	v.Global.iSelectedIndex.Set(v.Args.rowIndex)
+	gui.frmAddVIN.txtPOLine.Text(v.DataTable.dtVINs(v.Global.iSelectedIndex).Line!FieldVal)
+	gui.frmAddVIN.txtPart.Text(v.DataTable.dtVINs(v.Global.iSelectedIndex).Inv_ID!FieldVal)
+	gui.frmAddVIN.txtDescription.Text(v.DataTable.dtVINs(v.Global.iSelectedIndex).Description!FieldVal)
+	gui.frmAddVIN.txtVIN.Text(v.DataTable.dtVINs(v.Global.iSelectedIndex).Vin!FieldVal)
+	gui.frmAddVIN.dtpMfgDate.Value(v.DataTable.dtVINs(v.Global.iSelectedIndex).Mfg_Date!FieldVal)
+	gui.frmAddVIN.txtPackSlip.Text(v.DataTable.dtVINs(v.Global.iSelectedIndex).SHIPMENT_ID!FieldVal)
+Program.Sub.GsGcVINs_RowCellClick.End
+
+Program.Sub.frmAddVIN_UnLoad.Start
+	f.ODBC.Connection!con.Close
+	f.Intrinsic.Control.End
+Program.Sub.frmAddVIN_UnLoad.End
+
+Program.Sub.cmdSubmit_Click.Start
+	f.Intrinsic.Control.Try
+		V.Local.sError.Declare(String,"")
+		V.Local.i.Declare(Long,0)
+		V.Local.sSql.Declare(String,"")
+		V.Local.sPart.Declare(String,"")
+		V.Local.sBom.Declare(String,"")
+		V.Local.sRev.Declare(String,"")
+		v.Local.sYear.Declare(String,"")
+		V.Local.sJob.Declare(String,"")
+		V.Local.sLongDesc.Declare(String,"")
+		V.Local.sNumAx.Declare(String,"")
+		V.Local.sWO.Declare(String,"")
+		
+		'Loop throigh DT
+		f.Intrinsic.Control.For(v.Local.i, 0, v.DataTable.dtVINs.RowCount--,1)
+			'Set BOM
+			F.Intrinsic.String.Right(V.DataTable.dtVINs(v.Local.i).Inv_ID!FieldVal,3,V.Local.sRev)
+			F.Intrinsic.String.Left(V.DataTable.dtVINs(v.Local.i).Inv_ID!FieldVal,17,V.Local.sBom)
+			F.Intrinsic.String.Mid(V.DataTable.dtVINs(v.Local.i).Inv_ID!FieldVal,10,1,V.Local.sNumAx)
+			
+			F.ODBC.Connection!Con.ExecuteAndReturn("Select Top 1 Model_Year From GCG_6372_WMI Order by Model_Year Desc",V.Local.sYear)
+			
+			F.Intrinsic.String.Build("Select Text From Inv_Extra_Text Where RTRIM(Part) = '{0}'",V.DataTable.dtVINs(v.Local.i).Inv_ID!FieldValTRIM,V.Local.sSql)
+			F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSql,V.Local.sLongDesc)
+			
+			F.Intrinsic.String.Build("Select B.LBS, A.Product_Line From V_Inventory_Mstr A Left Join V_Inventory_Mst2 B on A.Part = B.Part and A.Location = B.Location Where RTRIM(A.Part) = '{0}'",V.DataTable.dtVINs(v.Local.i).Inv_ID!FieldValTRIM,V.Local.sSql)
+			F.Data.DataTable.CreateFromSQL("INV","con",V.Local.sSql,True)
+			
+			F.Intrinsic.String.Build("Select User1 as Config_Code, User5 as GAWR, USER9 as GVWR, USER13 as SINGLE_DUAL, USER17 as TIRE_SIZE, USER21 as PSI, USER25 as RIM, USER29 as SPARE_TIRE From INV_EXTRA Where RTRIM(Part) = '{0}' and Rev = '{1}'",V.Local.sBom.Trim,V.Local.sRev.Trim,V.Local.sSql)
+			F.Data.DataTable.CreateFromSQL("EXTRA","con",V.Local.sSql,True)
+			
+			F.Intrinsic.String.Build("Select A.Order_No, A.Order_Line, B.Customer_PO, C.Name_Customer_Ship, B.Quote, D.Price From v_po_drop_ship A Left Join V_Order_Header B On A.Order_No = B.Order_No LEFT JOIN V_Order_Ship_To C on A.Order_NO = C.Order_No LEFT JOIN V_Order_Lines D on A.Order_NO = D.Order_NO and A.Order_Line = D.Record_No Where A.PO = '{0}' and A.PO_Line = '{1}'",V.Global.sPO.Trim,V.DataTable.dtVINs(v.Local.i).Line!FieldValTrim,V.Local.sSql)
+			F.Data.DataTable.CreateFromSQL("ORDWO","con",V.Local.sSql,True)
+			
+			F.Data.DataTable.SetValue("dtVINs",-1,"Bom",V.Local.sBom.Trim,"BOM_REV",v.Local.sRev.Trim,"Model_Year",V.Local.sYear,"Inv_ID",V.DataTable.dtVINs(v.Local.i).Inv_ID!FieldValTrim,"ITEM_NUM",V.DataTable.dtVINs(v.Local.i).Inv_ID!FieldValTrim,"Description2",V.Local.sLongDesc.Trim,"NUM_AXLES",V.Local.sNumAx.Long,"WORKORDER_ID",V.Local.sWO.Trim)
+			
+			F.Intrinsic.Control.If(V.DataTable.INV.RowCount--,<>,-1)
+				F.Data.DataTable.SetValue("dtVINs",-1,"Weight",V.DataTable.INV(V.DataTable.INV.RowCount--).LBS!FieldVal,"Class",V.DataTable.INV(V.DataTable.INV.RowCount--).Product_Line!FieldValTrim,"Description",V.DataTable.dtVINs(V.Local.i).Description!FieldVal)
+			F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.If(V.DataTable.EXTRA.RowCount--,<>,-1)
+				F.Data.DataTable.SetValue("dtVINs",-1,"CONFIG_CODE",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).CONFIG_CODE!FieldValTrim,"GAWR",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).GAWR!FieldValTrim,"GVWR",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).GVWR!FieldValTrim)
+				F.Data.DataTable.SetValue("dtVINs",-1,"TIRE_SIZE",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).TIRE_SIZE!FieldValTrim,"RIM",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).RIM!FieldValTrim,"PSI",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).PSI!FieldValTrim)
+				F.Data.DataTable.SetValue("dtVINs",-1,"SINGLE_DUAL",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).SINGLE_DUAL!FieldValTrim,"SPARE_TIRE",V.DataTable.EXTRA(V.DataTable.EXTRA.RowCount--).SPARE_TIRE!FieldValTrim)
+			F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.If(V.DataTable.ORDWO.RowCount--,<>,-1)
+				F.Data.DataTable.SetValue("dtVINs",-1,"Order_Number",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).Order_NO!FieldValTrim,"ORD_DTL_ID",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).Order_Line!FieldValTrim,"PONO",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).Customer_PO!FieldValTrim,"QUOTE_ID",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).QUOTE!FieldValTrim,"Company",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).Name_Customer_Ship!FieldValTrim,"List_Price",V.DataTable.ORDWO(V.DataTable.ORDWO.RowCount--).Price!FieldVal)
+			F.Intrinsic.Control.EndIf
+			
+			f.Data.DataTable.Close("INV")
+			f.Data.DataTable.Close("EXTRA")
+			f.Data.DataTable.Close("ORDWO")
+		f.Intrinsic.Control.Next(v.Local.i)		
+		
+		F.Intrinsic.Control.If(V.DataTable.dtVINs.RowCount--,<>,-1)
+			F.Data.DataTable.SaveToDB("dtVINs","con","GCG_6372_Vin_Hist","VIN",128,"VIN@!@VIN*!*BOM@!@BOM*!*BOM_REV@!@BOM_REV*!*MODEL_YEAR@!@MODEL_YEAR*!*INV_ID@!@INV_ID*!*ITEM_NUM@!@ITEM_NUM*!*DESCRIPTION2@!@DESCRIPTION2*!*NUM_AXLES@!@NUM_AXLES*!*WORKORDER_ID@!@WORKORDER_ID*!*WEIGHT@!@WEIGHT*!*CLASS@!@CLASS*!*DESCRIPTION@!@DESCRIPTION*!*CONFIG_CODE@!@CONFIG_CODE*!*GAWR@!@GAWR*!*GVWR@!@GVWR*!*TIRE_SIZE@!@TIRE_SIZE*!*RIM@!@RIM*!*PSI@!@PSI*!*SINGLE_DUAL@!@SINGLE_DUAL*!*SPARE_TIRE@!@SPARE_TIRE*!*ORDER_NUMBER@!@ORDER_NUMBER*!*ORD_DTL_ID@!@ORD_DTL_ID*!*PONO@!@PONO*!*QUOTE_ID@!@QUOTE_ID*!*COMPANY@!@COMPANY*!*LIST_PRICE@!@LIST_PRICE")
+		F.Intrinsic.Control.EndIf
+		
+		'Close the screen
+		f.Intrinsic.Control.CallSub(frmAddVIN_UnLoad)
+	f.Intrinsic.Control.Catch
+		f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+	f.Intrinsic.Control.EndTry
+Program.Sub.cmdSubmit_Click.End
+
+Program.Sub.ErrorMsg.Start
+v.Local.sError.Declare
+
+'Generic Error message.
+f.Intrinsic.String.Build("Project GCG_6372_DropPOVINEntry.g2u {0}{0}Subroutine: {1}{0}Error: {2} with Description: {3}", v.Ambient.NewLine, v.Args.CurrentSub, v.Ambient.ErrorNumber, v.Ambient.ErrorDescription, v.Local.sError)
+f.Intrinsic.UI.Msgbox(v.Local.sError)
+Program.Sub.ErrorMsg.End
+
+Program.Sub.GetRecvQty.Start
+	v.Local.iRows.Declare
+	v.Local.sTitles.Declare
+	v.Local.sDataTypes.Declare
+	v.Local.sBDF.Declare
+	v.Local.fQtyRecvd.Declare
+	V.Local.i.Declare
+	v.Local.sTemp.Declare
+	v.Local.sType.Declare(String, "String")
+	
+	'Get the qty received
+	f.Intrinsic.BDF.Load("AUX001", "AUX001")
+	f.Intrinsic.BDF.ReadColumnTitle("AUX001",v.Local.sTitles)
+	
+	'build vars for datatypes
+	f.Intrinsic.BDF.ReadColumnCount("AUX001",v.Local.iRows)
+	f.Intrinsic.Math.Sub(v.Local.iRows,1,v.Local.iRows)
+	f.Intrinsic.Control.For(v.Local.i,0,v.Local.iRows,1)
+		f.Intrinsic.Control.If(v.Local.i,=,0)
+			v.Local.sDataTypes.Set("String")
+		f.Intrinsic.Control.Else
+			f.Intrinsic.Control.If(v.Local.i,=,14)
+				v.Local.sType.Set("Float")
+			f.Intrinsic.Control.Else
+				v.Local.sType.Set("String")
+			f.Intrinsic.Control.EndIf
+			f.Intrinsic.String.Build("{0}*!*{1}",v.Local.sDataTypes,v.Local.sType,v.Local.sDataTypes)
+		f.Intrinsic.Control.EndIf
+	f.Intrinsic.Control.Next(v.Local.i)
+	
+	'build string data and load to databale
+	f.Intrinsic.BDF.ReadRowCount("AUX001",v.Local.iRows)
+	f.Intrinsic.Math.Sub(v.Local.iRows,1,v.Local.iRows)
+	f.Intrinsic.Control.For(v.Local.i,0,v.Local.iRows,1)
+		f.Intrinsic.BDF.ReadRow("AUX001",v.Local.i,v.Local.sTemp)
+		f.Intrinsic.String.Split(v.Local.sTemp,"|~|",v.Local.sTemp)
+		v.Local.sTemp(0).Set(v.Local.sTemp(0).Trim)
+		f.Intrinsic.String.Join(v.Local.sTemp,"|~|",v.Local.sTemp)
+		f.Intrinsic.String.Replace(v.Local.sTemp,"|~|","*!*",v.Local.sTemp)
+		f.Intrinsic.Control.If(v.Local.i,=,0)
+			v.Local.sBDF.Set(v.Local.sTemp)
+		f.Intrinsic.Control.Else
+			f.Intrinsic.String.Build("{0}{1}{2}",v.Local.sBDF,v.Ambient.NewLine,v.Local.sTemp,v.Local.sBDF)	
+		f.Intrinsic.Control.EndIf
+	
+	f.Intrinsic.Control.Next(v.Local.i)
+	
+	'create data table from BDF data.
+	f.Data.DataTable.CreateFromString("dtPurch",v.Local.sBDF,v.Local.sTitles,v.Local.sDataTypes,"*!*",v.Ambient.NewLine,True)
+	
+	'Get qty received
+	f.Data.DataTable.Compute("dtPurch","SUM(Received)","",v.Local.fQtyRecvd)
+	
+	'Set qty recieved
+	gui.frmAddVIN.txtQty.Text(v.Local.fQtyRecvd.String)
+Program.Sub.GetRecvQty.End
+
+Program.Sub.Comments.Start
+${$5$}$3.0.0.0$}$1
+${$6$}$dduncan$}$20210618151857602$}$r0o+00bj735YsiGsQ60YIo/Zb+26OZQG1NdsjKAOXgKmvPp+SdrZFpjlBe9NMOlF5Gq09fO/Em8=
+Program.Sub.Comments.End
