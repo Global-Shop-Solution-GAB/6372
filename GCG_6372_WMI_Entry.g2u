@@ -1,0 +1,278 @@
+Program.Sub.ScreenSU.Start
+Gui.frmWMI..Create(BaseForm)
+Gui.frmWMI..Caption("VIN WMI Entry")
+Gui.frmWMI..Size(380,255)
+Gui.frmWMI..MinX(0)
+Gui.frmWMI..MinY(0)
+Gui.frmWMI..Position(0,0)
+Gui.frmWMI..AlwaysOnTop(False)
+Gui.frmWMI..FontName("Tahoma")
+Gui.frmWMI..FontSize(8.25)
+Gui.frmWMI..ControlBox(True)
+Gui.frmWMI..MaxButton(True)
+Gui.frmWMI..MinButton(True)
+Gui.frmWMI..MousePointer(0)
+Gui.frmWMI..Moveable(True)
+Gui.frmWMI..Sizeable(True)
+Gui.frmWMI..ShowInTaskBar(True)
+Gui.frmWMI..TitleBar(True)
+Gui.frmWMI..Event(UnLoad,frmVIN_UnLoad)
+Gui.frmWMI.txtWMI.Create(TextBox,"",True,198,20,0,10,23,True,0,"Tahoma",8.25,,1)
+Gui.frmWMI.lblWMI.Create(Label,"WMI",True,22,13,0,10,7,True,0,"Tahoma",8.25,,0,0)
+Gui.frmWMI.lblWMI.BorderStyle(0)
+Gui.frmWMI.cmdSave.Create(Button)
+Gui.frmWMI.cmdSave.Enabled(True)
+Gui.frmWMI.cmdSave.Visible(True)
+Gui.frmWMI.cmdSave.Zorder(0)
+Gui.frmWMI.cmdSave.Size(75,23)
+Gui.frmWMI.cmdSave.Position(15,195)
+Gui.frmWMI.cmdSave.Caption("Save")
+Gui.frmWMI.cmdSave.FontName("Tahoma")
+Gui.frmWMI.cmdSave.FontSize(8.25)
+Gui.frmWMI.cmdSave.Anchor(6)
+Gui.frmWMI.cmdSave.Event(Click,cmdSave_Click)
+Gui.frmWMI.GsGridPlant.Create(GsGridControl)
+Gui.frmWMI.GsGridPlant.Enabled(True)
+Gui.frmWMI.GsGridPlant.Visible(True)
+Gui.frmWMI.GsGridPlant.Zorder(0)
+Gui.frmWMI.GsGridPlant.Size(355,132)
+Gui.frmWMI.GsGridPlant.Position(14,55)
+Gui.frmWMI.GsGridPlant.Anchor(15)
+Gui.frmWMI.GsGridPlant.Event(RowCellClick,GsGridPlant_RowCellClick)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.BlockEvents
+
+F.Intrinsic.Control.UnBlockEvents
+
+F.Intrinsic.Control.CallSub(Create_Contex_Menu)
+F.Intrinsic.Control.CallSub(Get_Data)
+F.Intrinsic.Control.CallSub(Set_Properties)
+
+Function.Intrinsic.UI.UsePixels ' Allows you to use Pixels instead of Twips throughout
+gui.frmWMI..Show
+
+Gui.frmWMI..AlwaysOnTop(True)
+Gui.frmWMI..AlwaysOnTop(False)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Main.End
+
+Program.Sub.frmVIN_UnLoad.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+Program.Sub.frmVIN_UnLoad.End
+
+Program.Sub.GsGridPlant_RowCellClick.Start
+F.Intrinsic.Control.SetErrorHandler("GsGridPlant_RowCellClick_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.If(V.Args.Button.UCase,=,"LEFT")
+	F.Intrinsic.Control.If(V.Args.Column.UCase,=,"DELETE_PLANT")
+		F.Data.DataTable.DeleteRow("ModelYear",V.Args.RowIndex)
+		F.Data.DataTable.AcceptChanges("ModelYear")
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GsGridPlant_RowCellClick_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_WMI_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(frmVIN_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.GsGridPlant_RowCellClick.End
+
+Program.Sub.cmdSave_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmdSave_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.If(V.Screen.frmWMI!txtWMI.Text,<>,"")
+	F.Data.DataTable.SetValue("ModelYear",-1,"WMI",V.Screen.frmWMI!txtWMI.Text)
+	F.ODBC.Connection!Con.OpenCompanyConnection
+	F.ODBC.Connection!Con.Execute("Delete From GCG_6372_WMI")
+	F.Data.DataTable.SaveToDB("ModelYear","con","GCG_6372_WMI","",128,"Model_Year@!@Model_Year*!*WMI@!@WMI*!*Plant_Code@!@Plant_Code*!*Model@!@Model")
+	F.ODBC.Connection!Con.Close
+	F.Intrinsic.UI.Msgbox("WMI Info Saved.")
+F.Intrinsic.Control.Else
+	F.Intrinsic.UI.Msgbox("WMI needs to be populated.","Attention")
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+		
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdSave_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_WMI_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(frmVIN_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.cmdSave_Click.End
+
+Program.Sub.Get_Data.Start
+F.Intrinsic.Control.SetErrorHandler("Get_Data_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.ODBC.Connection!Con.OpenCompanyConnection
+
+F.Data.DataTable.CreateFromSQL("ModelYear","con","Select Model_Year, rtrim(Model) as Model, rtrim(WMI) as WMI, rtrim(Plant_Code) as Plant_Code From GCG_6372_WMI Order by Model_Year,Plant_Code",True)
+F.Data.DataTable.AddColumn("ModelYear","Delete_Plant",String)
+F.Intrinsic.Control.If(V.DataTable.ModelYear.RowCount--,<>,-1)
+	Gui.frmWMI.txtWMI.Text(V.DataTable.ModelYear(V.DataTable.ModelYear.RowCount--).WMI!FieldValTrim)
+F.Intrinsic.Control.EndIf
+
+F.ODBC.Connection!Con.Close
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Get_Data_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_WMI_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(frmVIN_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Get_Data.End
+
+Program.Sub.Set_Properties.Start
+F.Intrinsic.Control.SetErrorHandler("Set_Properties_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+Gui.frmWMI.GsGridPlant.AddGridviewFromDatatable("GModelYear","ModelYear")
+Gui.frmWMI.GsGridPlant.SetGridViewProperty("GModelYear","ShowGroupPanel",False)
+
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model_Year","Visible",True)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model_Year","AllowEdit",True)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model_Year","ReadOnly",False)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model_Year","Caption","Model Year")
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model_Year","headerforecolor",v.Color.PRI-GSS-00)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model_Year","headerfontbold",true)
+
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model","Visible",True)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model","AllowEdit",True)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model","ReadOnly",False)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model","Caption","Model")
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model","headerforecolor",v.Color.PRI-GSS-00)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Model","headerfontbold",true)
+
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","WMI","Visible",False)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","WMI","AllowEdit",False)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","WMI","ReadOnly",True)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","WMI","Caption","WMI")
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","WMI","headerforecolor",v.Color.PRI-GSS-00)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","WMI","headerfontbold",true)
+
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Plant_Code","Visible",True)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Plant_Code","AllowEdit",True)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Plant_Code","ReadOnly",False)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Plant_Code","Caption","Plant Code")
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Plant_Code","headerforecolor",v.Color.PRI-GSS-00)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Plant_Code","headerfontbold",true)
+
+Gui.frmWMI.GsGridPlant.ColumnEdit("GModelYear","Delete_Plant","EditorButton","Delete")
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Delete_Plant","Visible",True)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Delete_Plant","AllowEdit",False)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Delete_Plant","ReadOnly",True)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Delete_Plant","Caption"," ")
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Delete_Plant","headerforecolor",v.Color.PRI-GSS-00)
+Gui.frmWMI.GsGridPlant.SetColumnProperty("GModelYear","Delete_Plant","headerfontbold",true)
+
+Gui.frmWMI.GsGridPlant.MainView("GModelYear")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Set_Properties_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_WMI_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(frmVIN_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Set_Properties.End
+
+Program.Sub.Create_Contex_Menu.Start
+F.Intrinsic.Control.SetErrorHandler("Create_Contex_Menu_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+Gui.frmWMI..ContextMenuCreate("InsertRow")
+
+Gui.frmWMI..ContextMenuAddItem("InsertRow","Insert New Row",0,"Insert New Row")
+
+Gui.frmWMI..ContextMenuSetItemEventHandler("InsertRow","Insert New Row",MenuClick)
+
+Gui.frmWMI.GsGridPlant.ContextMenuAttach("InsertRow")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Create_Contex_Menu_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_WMI_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(frmVIN_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Create_Contex_Menu.End
+
+Program.Sub.MenuClick.Start
+F.Intrinsic.Control.SetErrorHandler("MenuClick_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String,"")
+
+F.Intrinsic.Control.SelectCase(V.Args.ItemName.UCase)
+	F.Intrinsic.Control.Case("INSERT NEW ROW")
+		F.Intrinsic.Control.If(V.Screen.frmWMI!txtWMI.Text,<>,"")
+			F.Data.DataTable.AddRow("ModelYear","WMI",V.Screen.frmWMI!txtWMI.Text)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.UI.Msgbox("WMI needs to be populated.","Attention")
+		F.Intrinsic.Control.EndIf
+		
+F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("MenuClick_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Build("Project: GCG_6372_WMI_Entry.g2u {0}{0}Subroutine: {1}{0}Error Occurred {2} with description {3}",V.Ambient.NewLine,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(frmVIN_UnLoad)
+Function.Intrinsic.Control.EndIf
+Program.Sub.MenuClick.End
+
+Program.Sub.Comments.Start
+${$5$}$3.0.0.0$}$1
+${$6$}$rking$}$20210602131842999$}$QNdZLVy4bWuiWa9jh1ZTiCjCxrZcr9BSRxf25lXEdVxCrImsPhn8/hoaFA+8VdK4xpjn22QP3PQ=
+Program.Sub.Comments.End
